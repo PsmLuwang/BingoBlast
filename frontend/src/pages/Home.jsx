@@ -1,10 +1,29 @@
-import React from 'react'
+import { useEffect } from 'react'
 import { Link } from "react-router-dom"
 import Ticket from '../components/Ticket'
 
+import { useTicketStore } from '../store/ticketStore.js'
+
 const Home = () => {
+  const { viewTickets, message } = useTicketStore();
+
+  useEffect(() => {
+    const handleViewTickets = async () => {
+      try {
+        await viewTickets();
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    handleViewTickets();
+  }, [viewTickets]);
+
+
+
   return (
     <>
+      <p>{message}</p>
       {/* header */}
       <header className='py-25 px-3 max-sm:py-18'>
         <h1 className="text-3xl md:text-5xl font-bold max-md:font-black pb-2 bg-gradient-to-r from-blue-300 to-red-600 bg-clip-text text-transparent text-center max-w-120 w-[calc(100%-30px)] m-auto">

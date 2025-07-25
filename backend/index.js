@@ -16,11 +16,11 @@ const app = express();
 const server = createServer (app);
 app.use(express.json());
 
-const FRONTEND_URL = "https://bingoblast.vercel.app"
-// ? "http://localhost:5173" 
-// : process.env.CLIENT_URL
+const FRONTEND_URL = process.env.NODE_ENV == "development" 
+? "http://localhost:5173" 
+: process.env.CLIENT_URL
 
-app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+app.use(cors({ origin: FRONTEND_URL }));
 
 // // Socket.io setup
 // const io = new Server(server, {

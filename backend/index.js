@@ -20,7 +20,11 @@ const FRONTEND_URL = process.env.NODE_ENV == "development"
 ? "http://localhost:5173" 
 : process.env.CLIENT_URL
 
-app.use(cors({ origin: FRONTEND_URL }));
+app.use(cors({ 
+  origin: FRONTEND_URL, 
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"] 
+}));
 
 // // Socket.io setup
 // const io = new Server(server, {

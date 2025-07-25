@@ -2,7 +2,7 @@ import { create } from "zustand";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_NODE_ENV == "development" 
-? "http://localhost:5000/api" 
+? "http://localhost:5000" 
 : import.meta.env.VITE_API_URL;
 
 
@@ -25,7 +25,7 @@ export const useTicketStore = create((set) => ({
 			return;
 		}
 		try {
-			const response = await axios.get(`${API_URL}/ticket/generate?numOfTickets=${numOfTickets}`);
+			const response = await axios.get(`${API_URL}/api/ticket/generate?numOfTickets=${numOfTickets}`);
 			set({ message: response.data.message, tickets: response.data.tickets, isLoading: false });
 		} catch (error) {
 			set({ error: error.response.data.message || "Error signing up", isLoading: false });
@@ -35,7 +35,7 @@ export const useTicketStore = create((set) => ({
 	viewTickets: async () => {
 		set({ isLoading: true, error: null });
 		try {
-			const response = await axios.get(`${API_URL}/test`);
+			const response = await axios.get(`${API_URL}/api/test`);
 			set({ message: response.data.message, isLoading: false });
 		} catch (error) {
 			set({ error: error.response.data.message || "Error signing up", isLoading: false });

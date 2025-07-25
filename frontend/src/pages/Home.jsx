@@ -1,11 +1,47 @@
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link } from "react-router-dom"
-import Ticket from '../components/Ticket'
+import { io } from "socket.io-client"
 
 import { useTicketStore } from '../store/ticketStore.js'
+import Ticket from '../components/Ticket'
+import LoadingAnimation from '../components/LoadingAnimation.jsx'
 
 const Home = () => {
-  const { viewTickets, message } = useTicketStore();
+  const { viewTickets, message, isLoading } = useTicketStore();
+
+  const [time, setTime] = useState("00:00:00");
+  const socketRef = useRef(null);
+
+  // useEffect(() => {
+  //   // Connect to Socket.io server
+  //   socketRef.current = io(
+  //     process.env.NODE_ENV === 'production' 
+  //       ? window.location.origin 
+  //       : 'http://localhost:5000',
+  //     {
+  //       reconnectionAttempts: 5,
+  //       reconnectionDelay: 1000,
+  //       autoConnect: true
+  //     }
+  //   );
+
+  //   // Timer event listener
+  //   const handleTimeUpdate = (time) => {
+  //     setTime(time);
+  //   };
+
+  //   socketRef.current.on('time', handleTimeUpdate);
+
+
+  //   // Cleanup function
+  //   return () => {
+  //     if (socketRef.current) {
+  //       socketRef.current.off('time', handleTimeUpdate); // Remove specific listener
+  //       socketRef.current.disconnect();
+  //     }
+  //   };
+
+  // },[])
 
   useEffect(() => {
     const handleViewTickets = async () => {
@@ -23,7 +59,6 @@ const Home = () => {
 
   return (
     <>
-      <p>{message}</p>
       {/* header */}
       <header className='py-25 px-3 max-sm:py-18'>
         <h1 className="text-3xl md:text-5xl font-bold max-md:font-black pb-2 bg-gradient-to-r from-blue-300 to-red-600 bg-clip-text text-transparent text-center max-w-120 w-[calc(100%-30px)] m-auto">
@@ -31,8 +66,8 @@ const Home = () => {
         </h1>
         <p className='text-center text-dark-text'>Where every number is a step closer to victory!</p>
         <p className='flex justify-center items-baseline gap-2 m-auto my-3'>
-          Starts in <span className='font-semibold text-2xl'> 00:00:00</span> 
-          <Link className='bg-blue-400 rounded-[4px] px-2 translate-y-[-4px] text-[0.9rem] font-semibold text-slate-900'>
+          Starts in <span className='font-semibold text-2xl'> {time}</span> 
+          <Link to={"/booking"} className='bg-blue-400 rounded-[4px] px-2 translate-y-[-4px] text-[0.9rem] font-semibold text-slate-900'>
             Book now <i className="fa-solid fa-arrow-right text-[0.8rem]"></i>
           </Link>
         </p>
@@ -67,20 +102,9 @@ const Home = () => {
       </section>
 
       <section className='grid grid-cols-4 max-lg:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1 gap-2 w-[calc(100%-30px)] mb-10 m-auto'>
-        <Ticket />
-        <Ticket />
-        <Ticket />
-        <Ticket />
-        <Ticket />
-        <Ticket />
-        <Ticket />
-        <Ticket />
-        <Ticket />
-        <Ticket />
-        <Ticket />
-        <Ticket />
-        <Ticket />
-        <Ticket />
+        {Array(10).fill("").map((_,index) => (
+          <Ticket key={index} tno={index+1} data={[6, 0, 0, 33, 0, 0, 68, 71, 84, 0, 16, 0, 31, 46, 57, 0, 0, 83, 0, 0, 26, 0, 49, 52, 61, 0, 86]}/>
+        ))}
       </section>
     </>
   )

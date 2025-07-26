@@ -28,17 +28,17 @@ export const useTicketStore = create((set) => ({
 			const response = await axios.get(`${API_URL}/api/ticket/generate?numOfTickets=${numOfTickets}`);
 			set({ message: response.data.message, tickets: response.data.tickets, isLoading: false });
 		} catch (error) {
-			set({ error: error.response.data.message || "Error signing up", isLoading: false });
+			set({ error: error.response.data.message || "Error generate tickets", isLoading: false });
 			throw error;
 		}
 	},
 	viewTickets: async () => {
 		set({ isLoading: true, error: null });
 		try {
-			const response = await axios.get(`${API_URL}/api/test`);
+			const response = await axios.get(`${API_URL}/`);
 			set({ message: response.data.message, isLoading: false });
 		} catch (error) {
-			set({ error: error.response.data.message || "Error signing up", isLoading: false });
+			set({ error: error.response.data.message || "Test API Error", isLoading: false });
 			throw error;
 		}
 	},

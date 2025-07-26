@@ -13,18 +13,46 @@ import { generateTicket } from "./controllers/generateTicket.js"
 
 dotenv.config();
 const app = express();
-const server = createServer (app);
+// const server = createServer (app);
 app.use(express.json());
 
 const FRONTEND_URL = process.env.NODE_ENV == "development" 
 ? "http://localhost:5173" 
 : process.env.CLIENT_URL
 
-app.use(cors({ 
-  origin: FRONTEND_URL, 
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"] 
-}));
+app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+
+// CRUD operation for game datas
+app.use("/api/gameData", gameDataRoutes);
+app.use("/api/ticket", ticketRoutes); // /api/ticket/generate
+
+
+app.get("/", (req,res) => {
+  res.json({message: "cors is working"});
+})
+
+
+// generate tickets
+console.log(generateTicket(2));
+
+
+
+const PORT = process.env.PORT || 5000
+connectDB();
+app.listen(PORT, () => {
+  console.log(`server is live : ${PORT}`);
+  console.log(`FRONTEND_URL : ${FRONTEND_URL}`);
+  
+})
+
+
+
+
+
+
+
+
+
 
 // // Socket.io setup
 // const io = new Server(server, {
@@ -74,35 +102,3 @@ app.use(cors({
 //   // socket.on('time', () => {
 //   // });
 // });
-
-
-
-
-
-// CRUD operation for game datas
-app.use("/api/gameData", gameDataRoutes);
-app.use("/api/ticket", ticketRoutes); // /api/ticket/generate
-
-
-
-
-app.get("/api/test", (req,res) => {
-  res.json({message: "cors is working"});
-})
-
-// CRUD operation for game datas
-app.use("/api/gameData", gameDataRoutes)
-
-
-// generate tickets
-console.log(generateTicket(2));
-
-
-
-const PORT = process.env.PORT || 5000
-connectDB();
-server.listen(PORT, () => {
-  console.log(`server is live : ${PORT}`);
-  console.log(`FRONTEND_URL : ${FRONTEND_URL}`);
-  
-})

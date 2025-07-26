@@ -13,7 +13,7 @@ import { generateTicket } from "./controllers/generateTicket.js"
 
 dotenv.config();
 const app = express();
-// const server = createServer (app);
+const server = createServer (app);
 app.use(express.json());
 
 const FRONTEND_URL = process.env.NODE_ENV == "development" 
@@ -39,7 +39,7 @@ console.log(generateTicket(2));
 
 const PORT = process.env.PORT || 5000
 connectDB();
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`server is live : ${PORT}`);
   console.log(`FRONTEND_URL : ${FRONTEND_URL}`);
   

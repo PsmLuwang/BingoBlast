@@ -1,17 +1,34 @@
 import { useEffect, useState } from 'react'
 import Ticket from '../components/Ticket'
+import LoadingAnimation from '../components/LoadingAnimation'
 import { useTicketStore } from "../store/ticketStore"
 
 const Booking = () => {
   // const [tickets, setTickets] = useState([]);
-const { generateTickets, isLoading, message, tickets, error } = useTicketStore();
+const { generateTickets, isLoading, message, tickets, error, bookingTickets } = useTicketStore();
 const [numOfTickets, setNumOfTickets] = useState("");
+const [gameID, setGameID] = useState("6881af638b6595870981fd12"); // fix for development test
+const [name, setName] = useState("");
+const [phone, setPhone] = useState("");
+const [email, setEmail] = useState("");
 
 const handleGenerateTickets = async () => {
   const count = parseInt(numOfTickets);
   try {
     await generateTickets(count);
-    // Don't log tickets here – it may be stale
+    
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const handleBookingTickets = async () => {
+  try {
+    const selectedTickets = tickets.map(ticket => {
+      return ticket.data;
+    })
+    await bookingTickets(gameID, name, phone, email, selectedTickets);
+    
   } catch (error) {
     console.error(error);
   }
@@ -30,15 +47,36 @@ useEffect(() => {
       <div className='w-[calc(100%-30px)] mx-auto mb-5 max-w-100 bg-slate-800 px-3 py-6 rounded-2xl flex flex-col gap-3 shadow-md shadow-white/10 border border-slate-700'>
         <div className='flex flex-col gap-2'>
           <label htmlFor="name" className='text-[0.9rem] text-dark-text'>Name</label>
-          <input type="text" name='name' id='name' required className='block w-full rounded-md bg-slate-300 px-3 py-1 text-black focus:outline-2 focus:-outline-offset-2 focus:outline-slate-600' />
+          <input className='block w-full rounded-md bg-slate-300 px-3 py-1 text-black focus:outline-2 focus:-outline-offset-2 focus:outline-slate-600' 
+            id='name'
+            type="text" 
+            name='name' 
+            required 
+            // value={numOfTickets}
+            onChange={(e) => setName(e.target.value)}
+          />
         </div>
         <div className='flex flex-col gap-2'>
           <label htmlFor="phone" className='text-[0.9rem] text-dark-text'>Phone no.</label>
-          <input type="text" name='phone' id='phone' required className='block w-full rounded-md bg-slate-300 px-3 py-1 text-black focus:outline-2 focus:-outline-offset-2 focus:outline-slate-600' />
+          <input className='block w-full rounded-md bg-slate-300 px-3 py-1 text-black focus:outline-2 focus:-outline-offset-2 focus:outline-slate-600' 
+            id='phone'
+            type="text" 
+            name='phone' 
+            required 
+            // value={numOfTickets}
+            onChange={(e) => setPhone(e.target.value)}
+          />
         </div>
         <div className='flex flex-col gap-2'>
           <label htmlFor="email" className='text-[0.9rem] text-dark-text'>Email (optional)</label>
-          <input type="text" name='email' id='email' className='block w-full rounded-md bg-slate-300 px-3 py-1 text-black focus:outline-2 focus:-outline-offset-2 focus:outline-slate-600' />
+          <input className='block w-full rounded-md bg-slate-300 px-3 py-1 text-black focus:outline-2 focus:-outline-offset-2 focus:outline-slate-600' 
+            id='email'
+            type="text" 
+            name='email' 
+            required 
+            // value={numOfTickets}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
       </div>
 
@@ -58,6 +96,7 @@ useEffect(() => {
       </div>
 
       {error && (<p className='text-center text-red-500 my-2'>{error}</p>)}
+      {isLoading && (<LoadingAnimation />)}
       {/* ticket display */}
       {tickets.length > 0 && (
         <section className='grid grid-cols-1 gap-2 w-[calc(100%-30px)] mx-auto mt-3 max-w-100'>
@@ -69,9 +108,8 @@ useEffect(() => {
 
       {/* submit Btn */}
       <section className='w-[calc(100%-30px)] mx-auto max-w-100 mb-20 mt-4'>
-        <button className='w-full bg-green-600 rounded-md p-2 cursor-pointer font-semibold'>Book now</button>
+        <button onClick={handleBookingTickets} className='w-full bg-green-600 rounded-md p-2 cursor-pointer font-semibold'>Book now</button>
       </section>
-
     </div>
   )
 }

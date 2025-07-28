@@ -4,7 +4,7 @@ const playerInfoSchema = new mongoose.Schema({
   ticket: { type: String, required: true },
   name: { type: String, required: true },
   phone: { type: String, required: true },
-  email: { type: String, required: true },
+  email: { type: String, required: false },
   playerID: { type: String, required: true }
 });
 
@@ -14,6 +14,7 @@ const gameDataSchema = new mongoose.Schema(
     numOfTickets : { type: Number, default: 0 },
     startAt : { type: Date, required: true },
     callNum : { type: Array, default: [] },
+    isBookingOpen : { type: Boolean, default: false },
     maxWinner : {
       earlyFive: { type: Number, default: 1 },
       firstLine: { type: Number, default: 1 },

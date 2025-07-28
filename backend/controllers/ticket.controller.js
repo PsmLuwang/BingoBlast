@@ -1,4 +1,8 @@
 import { generateTicket } from "./generateTicket.js"
+import { ticketModel } from "../models/ticketsModel.js";
+import { bookingSuccess } from "../email/bookingSuccess.js"
+import { sendEmail } from "../email/sendEmail.js"
+import { gameDataModel } from "../models/gameDataModel.js";
 
 
 
@@ -33,9 +37,66 @@ export const genarateTicketBeforeBooking = async (req, res) => {
       const objFormTicket = { tno : '', data : ticket }
       formatedTickets.push(objFormTicket);
     })
-
-
+      
     res.status(200).json({ success: true, tickets: formatedTickets, message: `${numOfTickets} tickets are generated` });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+}
+
+
+// booking tickets
+export const bookingTickets = async (req, res) => {
+
+  try {
+    // 1. Validate required fields
+    if (!req.body.gameID || !req.body.name || !req.body.phone || !req.body.tickets) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // 2. Transform frontend data to match schema
+    const transformedData = {
+      gameID: req.body.gameID,
+      buyer: {
+        name: req.body.name,
+        phone: req.body.phone,
+        email: req.body.email || undefined
+      },
+      tickets: req.body.tickets.map(ticketData => ({
+        data: Array.isArray(ticketData) ? ticketData : [ticketData]
+      }))
+    };
+
+    // 3. Create and save ticket
+    const newTicket = new ticketModel(transformedData);
+    await newTicket.save();
+
+    // 4. send mail
+    if (req.body.email) {
+      const gameBookingFor = await gameDataModel.findOne({ _id : req.body.gameID });
+      const bookingSuccessHtml = bookingSuccess(
+        req.body.name,
+        gameBookingFor.startAt,
+        newTicket.playerID,
+        newTicket.tickets.length > 1 ? `${newTicket.tickets[0].tno} to ${newTicket.tickets[newTicket.tickets.length-1].tno}` : newTicket.tickets[0].tno
+      );
+  
+      sendEmail(req.body.email, "Ticket Booking Success", bookingSuccessHtml);
+    }
+
+
+    // 5. Return success response (excluding sensitive data if needed)
+    const responseData = {
+      _id: newTicket._id,
+      playerID: newTicket.playerID,
+      gameID: newTicket.gameID,
+      tickets: newTicket.tickets,
+      success: true
+    };
+
+    res.status(201).json(responseData);
+
+    // res.status(201).json({ success: true });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }

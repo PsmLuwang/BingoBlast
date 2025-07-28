@@ -9,7 +9,6 @@ import { Server  } from "socket.io";
 import gameDataRoutes from "./routes/gameData.route.js"
 import ticketRoutes from "./routes/ticket.route.js"
 
-import { generateTicket } from "./controllers/generateTicket.js"
 
 dotenv.config();
 const app = express();
@@ -22,18 +21,15 @@ const FRONTEND_URL = process.env.NODE_ENV == "development"
 
 app.use(cors({ origin: FRONTEND_URL, credentials: true }));
 
-// CRUD operation for game datas
-app.use("/api/gameData", gameDataRoutes);
-app.use("/api/ticket", ticketRoutes); // /api/ticket/generate
+
+app.use("/api/gameData", gameDataRoutes); // CRUD operation for game datas
+app.use("/api/ticket", ticketRoutes); // tickets operation
 
 
 app.get("/", (req,res) => {
   res.json({message: "cors is working"});
 })
 
-
-// generate tickets
-console.log(generateTicket(2));
 
 
 

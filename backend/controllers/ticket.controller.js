@@ -3,19 +3,41 @@ import { ticketModel } from "../models/ticketsModel.js";
 import { bookingSuccess } from "../email/bookingSuccess.js"
 import { sendEmail } from "../email/sendEmail.js"
 import { gameDataModel } from "../models/gameDataModel.js";
+import { userModel } from "../models/userModel.js";
 
 
 
 // view ticket & hidder admin login **************************
 export const viewTicket = async (req, res) => {
   const playerID = req.query.playerID;
-
-  
+  if (!playerID) {
+    res.status(400).json({ success: false, message: "Please enter your player ID" })
+  }
   try {
-    if (playerID == "admin") {
-      res.json({message : "admin login granted"})
+    const ticketDetails = await ticketModel.findOne({ playerID });
+    if (ticketDetails) {
+      res.status(200).json({ 
+        responseFor: "tickets",
+        success: true,
+        playerID: ticketDetails.playerID,
+        payment: ticketDetails.payment,
+        tickets: ticketDetails.tickets
+      });
     }
-    res.status(201).json({ success: true, gameData: "gameData" });
+
+    const userDetails = await userModel.findOne({ email: playerID });
+    if (userDetails) {
+      res.status(200).json({
+        responseFor: "user",
+        name: userDetails.name,
+        email: userDetails.email,
+        phone: userDetails.phone,
+        role: userDetails.role
+      })
+    } else {
+      res.json({ success: false, message: "Wrong player ID." })
+    }
+
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }

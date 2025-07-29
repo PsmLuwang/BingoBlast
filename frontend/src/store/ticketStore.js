@@ -9,14 +9,23 @@ const API_URL = import.meta.env.VITE_NODE_ENV == "development"
 axios.defaults.withCredentials = true;
 
 export const useTicketStore = create((set) => ({
+	// hidden feature for admin login
+	responseFor: null,
+	name: null,
+	email: null,
+	phone: null,
+	role: null,
+	//////////////////
+
 	gameID: null,
 	playerID: null,
 	buyer: null,
 	tickets: [],
-	isAdmin: false,
+	payment: false,
 	error: null,
 	isLoading: false,
 	message: null, 
+	success: false,
  
 	generateTickets: async (numOfTickets) => {
 		set({ isLoading: true, error: null, tickets: [] });
@@ -32,6 +41,8 @@ export const useTicketStore = create((set) => ({
 			throw error;
 		}
 	},
+
+
 	bookingTickets: async (gameID, name, phone, email, tickets) => {
 		set({ isLoading: true, error: null });
 		if (!gameID || !name || !phone || !tickets) {
@@ -48,16 +59,67 @@ export const useTicketStore = create((set) => ({
 			throw error;
 		}
 	},
-	viewTickets: async () => {
+
+
+	viewTickets: async (playerID) => {
+		if (!playerID) {
+			set({ error: "Enter your ID.", success: false });
+			return;
+		}
 		set({ isLoading: true, error: null });
+
 		try {
-			const response = await axios.get(`${API_URL}/`);
-			set({ message: response.data.message, isLoading: false });
+			const response = await axios.get(`${API_URL}/api/ticket/view?playerID=${playerID}`);
+
+			if (response.data.message == "Wrong player ID.") {
+				set({ message: "Wrong ID", isLoading: false, role: "user" });
+				return;
+			}
+
+			if (response.data.responseFor == "tickets") {
+				set({
+					responseFor: response.data.responseFor,
+					success: response.data.success,
+					playerID: response.data.playerID,
+					payment: response.data.payment,
+					tickets: response.data.tickets,
+					isLoading: false
+				});
+			} else if (response.data.responseFor == "user") {
+				set({
+					responseFor: response.data.responseFor,
+					success: response.data.success,
+					name: response.data.name,
+					email: response.data.email,
+					phone: response.data.phone,
+					role: response.data.role,
+					isLoading: false
+				});
+			}
+			
+			set({ isLoading: false });
+			
 		} catch (error) {
 			set({ error: error.response.data.message || "Test API Error", isLoading: false });
 			throw error;
 		}
 	},
+
+	
+	// Admin verification
+	// isAdminCheck: async () => {
+	// 	set({ isLoading: true, error: null });
+	// 	try {
+	// 		const response = await axios.get(`${API_URL}/api/ticket/isAdminCheck`);
+      
+	// 		set({ user: response.data.user, isAuthenticated: true, isCheckingAuth: false });
+	// 	} catch (error) {
+  //     set({ error: null, isCheckingAuth: false, isAuthenticated: false });
+	// 	}
+	// },
+
+
 }));
+
 
 

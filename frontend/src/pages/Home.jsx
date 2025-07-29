@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { Link } from "react-router-dom"
+import { Link, useNavigate  } from "react-router-dom"
 import { io } from "socket.io-client"
 
 import { useTicketStore } from '../store/ticketStore.js'
@@ -7,10 +7,19 @@ import Ticket from '../components/Ticket'
 import LoadingAnimation from '../components/LoadingAnimation.jsx'
 
 const Home = () => {
-  const { viewTickets, message, isLoading } = useTicketStore();
+  const { 
+    viewTickets, 
+    message, 
+    isLoading,
+    role,
+
+
+  } = useTicketStore();
+  const navigate = useNavigate();
 
   const [time, setTime] = useState("00:00:00");
   const socketRef = useRef(null);
+  const [playerIDInput, setPlayerIDInput] = useState("");
 
   // useEffect(() => {
   //   // Connect to Socket.io server
@@ -43,17 +52,20 @@ const Home = () => {
 
   // },[])
 
-  useEffect(() => {
-    const handleViewTickets = async () => {
-      try {
-        await viewTickets();
-      } catch (error) {
-        console.log(error);
-      }
-    };
+  const handleViewTickets = async () => {
+    try {
+      await viewTickets(playerIDInput);
+      
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-    handleViewTickets();
-  }, [viewTickets]);
+  useEffect(() => {
+    if (role === "admin") {
+      navigate(`/adminPanel?code=${playerIDInput}`);
+    }
+  }, [role, navigate]);
 
 
 
@@ -75,10 +87,16 @@ const Home = () => {
 
       {/* search ticket using ID & whatsapp contact link */}
       <section className='flex gap-2 max-w-130 w-[calc(100%-30px)] m-auto'>
-        <form className='bg-slate-800 flex-1 h-12 p-2 flex items-center rounded-[40px] min-w-0'>
-          <input type="text" placeholder='Enter your ID' className='flex-1 min-w-0 h-8 outline-0 px-2 pb-0.5' />
-          <input type="submit" value="View-Tickets" className='bg-green-600 font-semibold p-1 px-2 text-[0.8rem] h-full rounded-[30px] cursor-pointer'/>
-        </form>
+        <div className='bg-slate-800 flex-1 h-12 p-2 flex items-center rounded-[40px] min-w-0'>
+          <input className='flex-1 min-w-0 h-8 outline-0 px-2 pb-0.5' 
+            type="text" 
+            placeholder='Enter your ID'
+            required
+            id='playerID'
+            onChange={(e) => setPlayerIDInput(e.target.value)}
+          />
+          <button onClick={handleViewTickets} className='bg-green-600 font-semibold p-1 px-2 text-[0.8rem] h-full rounded-[30px] cursor-pointer'>View-Tickets</button>
+        </div>
 
         <Link className='bg-slate-700 h-12 w-12 rounded-full flex justify-center items-center aspect-square'>
           <i className="fa-brands fa-whatsapp text-2xl text-green-600"></i>

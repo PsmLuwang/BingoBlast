@@ -3,6 +3,7 @@ import { Link, useNavigate  } from "react-router-dom"
 import { io } from "socket.io-client"
 
 import { useTicketStore } from '../store/ticketStore.js'
+import { useAuthStore } from "../store/authStore";
 import Ticket from '../components/Ticket'
 import LoadingAnimation from '../components/LoadingAnimation.jsx'
 
@@ -61,16 +62,14 @@ const Home = () => {
     }
   };
 
-  useEffect(() => {
-    if (role === "admin") {
-      navigate(`/adminPanel?code=${playerIDInput}`);
-    }
-  }, [role, navigate]);
+  const { isAuthenticated, user } = useAuthStore();
+
 
 
 
   return (
     <>
+      {isAuthenticated && user.role == "admin" && <Link to={"/adminPanel"} className='bg-blue-500 absolute right-4 top-4 w-30 text-center text-black'>Admin Panel</Link>}
       {/* header */}
       <header className='py-25 px-3 max-sm:py-18'>
         <h1 className="text-3xl md:text-5xl font-bold max-md:font-black pb-2 bg-gradient-to-r from-blue-300 to-red-600 bg-clip-text text-transparent text-center max-w-120 w-[calc(100%-30px)] m-auto">

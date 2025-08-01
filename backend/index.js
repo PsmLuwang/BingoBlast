@@ -4,8 +4,11 @@ import dotenv from "dotenv";
 import { connectDB } from "./db/mongodb.config.js"
 import { createServer  } from "http"
 import { Server  } from "socket.io";
+import cookieParser from "cookie-parser";
+
 
 // routes
+import authRoutes from "./routes/auth.route.js"
 import gameDataRoutes from "./routes/gameData.route.js"
 import ticketRoutes from "./routes/ticket.route.js"
 
@@ -14,6 +17,7 @@ dotenv.config();
 const app = express();
 const server = createServer (app);
 app.use(express.json());
+app.use(cookieParser());
 
 const FRONTEND_URL = process.env.NODE_ENV == "development" 
 ? "http://localhost:5173" 
@@ -22,6 +26,7 @@ const FRONTEND_URL = process.env.NODE_ENV == "development"
 app.use(cors({ origin: FRONTEND_URL, credentials: true }));
 
 
+app.use("/api/auth", authRoutes); // user authentication
 app.use("/api/gameData", gameDataRoutes); // CRUD operation for game datas
 app.use("/api/ticket", ticketRoutes); // tickets operation
 
@@ -29,7 +34,6 @@ app.use("/api/ticket", ticketRoutes); // tickets operation
 app.get("/", (req,res) => {
   res.json({message: "cors is working"});
 })
-
 
 
 

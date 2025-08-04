@@ -40,25 +40,25 @@ export const useGameDataStore = create((set) => ({
   },
 
   bookingToggle: async () => {
-    set({ isLoading: true, error: null, success: false });
+    set({ error: null, success: false });
     try {
       const response = await axios.get(`${API_URL}/api/gameData/bookingToggle`);
       
-      set({ gameData: response.data.game, success: true, isLoading: false });
+      set({ gameData: response.data.game, success: true });
     } catch (error) {
-      set({ error: error.response.data.message || "Error toggling booking status", isLoading: false });
+      set({ error: error.response.data.message || "Error toggling booking status" });
 			throw error;
     }
   },
 
   paymentToggle: async (playerID) => {
-    set({ isLoading: true, error: null, success: false });
+    set({ error: null, success: false });
     try {
       const response = await axios.post(`${API_URL}/api/gameData/paymentToggle`, { playerID });
       
-      set({ success: true, isLoading: false });
+      set({ success: true });
     } catch (error) {
-      set({ error: error.response.data.message || "Error toggling booking status", isLoading: false });
+      set({ error: error.response.data.message || "Error toggling booking status" });
 			throw error;
     }
   }

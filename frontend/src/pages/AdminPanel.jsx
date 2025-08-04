@@ -30,6 +30,14 @@ const AdminPanel = () => {
     
   }, [viewGameData])
 
+
+  const [updatingBookingStatus, setUpdatingBookingStatus] = useState(false);
+  const handleBookingToggle = async () => {
+    setUpdatingBookingStatus(true)
+    await bookingToggle()
+    setUpdatingBookingStatus(false)
+  }
+
   
 
   // upload game popup form
@@ -80,7 +88,15 @@ const AdminPanel = () => {
       <nav className='m-auto flex justify-center gap-2 my-5 mx-3 flex-wrap'>
         <button onClick={() => setUploadFormShow(true)} className='bg-blue-500 px-2 py-1 rounded-md text-[0.9rem]'>Upload Game</button>
         <button className='bg-blue-500 px-2 py-1 rounded-md text-[0.9rem]'>Game Modify</button>
-        {gameData && <button onClick={bookingToggle} className={`${gameData.isBookingOpen ? "bg-green-500" : "bg-red-500"} px-2 py-1 rounded-md text-[0.9rem]`}>{gameData.isBookingOpen ? "Booking Open" : "Booking Closed"}</button>}
+        {gameData && 
+          <button onClick={handleBookingToggle} className={`${gameData.isBookingOpen ? "bg-green-500" : "bg-red-500"} px-2 py-1 w-30 rounded-md text-[0.9rem]`}>
+            {updatingBookingStatus ? (
+              <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full"></span>
+            ) : (
+              gameData.isBookingOpen ? "Booking Open" : "Booking Closed"
+            )}
+          </button>
+        }
         <button className='bg-blue-500 px-2 py-1 rounded-md text-[0.9rem]'>Game History</button>
         <button className='bg-green-500 px-2 py-1 rounded-md text-[0.9rem]'>Profile</button>
         <button onClick={() => logout()} className='bg-red-500 px-2 py-1 rounded-md text-[0.9rem]'>Logout</button>
@@ -101,7 +117,7 @@ const AdminPanel = () => {
       <section>
         {/* Coming Game Status */}
         <h1 className='max-w-7xl mt-4 m-auto w-[calc(100%-30px)] font-medium'>Coming Game Status :</h1>
-        {isLoading && <LoadingAnimation />}
+        {isLoading && <p className='absolute left-[50%] top-30 translate-x-[-50%]'>Loading...</p>}
         {gameData && <div className='max-w-7xl my-4 pb-4 m-auto w-[calc(100%-30px)] text-[0.9rem] grid sm:grid-cols-2 grid-cols-1 gap-2 border-b-2 border-slate-600'>
           <h1><span className='font-medium text-blue-500'>Game ID: </span>{gameData._id}</h1>
           <h1>

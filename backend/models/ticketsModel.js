@@ -10,15 +10,14 @@ const ticketSchema = new mongoose.Schema(
     gameID : { type: mongoose.Schema.Types.ObjectId, ref: "gameData", required: true },
     playerID : { type: String, unique: true },
     payment : { type: Boolean, default: false },
-    bookAt : { type: Date, default: Date.now, require: true },
-    confirmAt : { type: Date },
     buyer : {
       name: { type: String, require: true },
       phone: { type: Number, require: true },
       email: { type: String }
     },
     tickets : { type: [ticketInfoSchema], required: true }
-  }
+  },
+  { timestamps: true }
 )
 
 ticketSchema.pre('save', async function(next) {

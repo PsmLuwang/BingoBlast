@@ -2,46 +2,73 @@ import { useEffect, useState } from 'react'
 import Ticket from '../components/Ticket'
 import LoadingAnimation from '../components/LoadingAnimation'
 import { useTicketStore } from "../store/ticketStore"
+import { useGameDataStore } from "../store/gameDataStore.js"
 
 const Booking = () => {
   // const [tickets, setTickets] = useState([]);
-const { generateTickets, isLoading, message, tickets, error, bookingTickets } = useTicketStore();
-const [numOfTickets, setNumOfTickets] = useState("");
-const [gameID, setGameID] = useState("6881af638b6595870981fd12"); // fix for development test
-const [name, setName] = useState("");
-const [phone, setPhone] = useState("");
-const [email, setEmail] = useState("");
+  const { viewGameData, gameData } = useGameDataStore();
+  const { generateTickets, isLoading, message, tickets, error, bookingTickets } = useTicketStore();
+  const [numOfTickets, setNumOfTickets] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
 
-const handleGenerateTickets = async () => {
-  const count = parseInt(numOfTickets);
-  try {
-    await generateTickets(count);
+  // get the latest game data for booking
+  useEffect(() => {
+    const handleViewGameData = (_id) => {
+      viewGameData(_id)
+    }
+    handleViewGameData("latest");
     
-  } catch (error) {
-    console.error(error);
-  }
-};
+  }, [viewGameData])
 
-const handleBookingTickets = async () => {
-  try {
-    const selectedTickets = tickets.map(ticket => {
-      return ticket.data;
-    })
-    await bookingTickets(gameID, name, phone, email, selectedTickets);
-    
-  } catch (error) {
-    console.error(error);
+  // stop booking if booking is closed or new game is not uploaded
+  if (gameData && (new Date(gameData.startAt).getTime() <= Date.now() + 5 * 60 * 1000 || !gameData.isBookingOpen) ) {
+    return <div className="text-red-500 text-center my-20">Booking is temporary closed...</div>
   }
-};
 
-useEffect(() => {
-  // This only runs when tickets actually update
-  console.log("Updated tickets:", tickets);
-}, [tickets]);
+  
+
+  // generate new tickets
+  const handleGenerateTickets = async () => {
+    const count = parseInt(numOfTickets);
+    try {
+      await generateTickets(count);
+      
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // book tickets
+  const handleBookingTickets = async () => {
+    try {
+      const selectedTickets = tickets.map(ticket => {
+        return ticket.data;
+      })
+      await bookingTickets(gameData._id, name, phone, email, selectedTickets);
+      
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+
 
   return (
     <div>
-      <h1 className='text-center font-bold text-3xl my-8 mt-20 bg-gradient-to-r from-blue-300 to-red-600 bg-clip-text text-transparent w-60 m-auto'>Booking Tickets</h1>
+      <h1 className='text-center font-bold text-3xl mb-2 mt-20 bg-gradient-to-r from-blue-300 to-red-600 bg-clip-text text-transparent w-60 m-auto'>Booking Tickets</h1>
+      <p className='text-center mb-4'>Date: 
+        {gameData && ` ` + new Date(gameData.startAt).toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata", 
+          day: "2-digit",
+          month: "short",  // use "long" for full month name
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true
+        })}
+      </p>
 
       {/* form inputs */}
       <div className='w-[calc(100%-30px)] mx-auto mb-5 max-w-100 bg-slate-800 px-3 py-6 rounded-2xl flex flex-col gap-3 shadow-md shadow-white/10 border border-slate-700'>

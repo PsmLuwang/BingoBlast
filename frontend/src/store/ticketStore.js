@@ -49,6 +49,10 @@ export const useTicketStore = create((set) => ({
 			set({ error: "Missing required fields", isLoading: false });
 			return;
 		}
+		if (tickets.length <= 0 ) {
+			set({ error: "Please generate tickets.", isLoading: false });
+			return;
+		}
 		try {
 			const emailInput = email || null;
 			const response = await axios.post(`${API_URL}/api/ticket/booking`, { gameID, name, phone, tickets, email: emailInput });

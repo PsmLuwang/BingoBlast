@@ -5,7 +5,7 @@ import { connectDB } from "./db/mongodb.config.js"
 import { createServer  } from "http"
 import { Server  } from "socket.io";
 import cookieParser from "cookie-parser";
-
+import { generateTicket } from "./controllers/generateTicket.js";
 
 // routes
 import authRoutes from "./routes/auth.route.js"

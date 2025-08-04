@@ -16,24 +16,25 @@ const gameDataSchema = new mongoose.Schema(
     callNum : { type: Array, default: [] },
     isBookingOpen : { type: Boolean, default: false },
     maxWinner : {
-      earlyFive: { type: Number, default: 1 },
-      firstLine: { type: Number, default: 1 },
-      secondLine: { type: Number, default: 1 },
-      thirdLine: { type: Number, default: 1 },
-      fullHouse: { type: Number, default: 1 },
-      fullSheet: { type: Number, default: 1 },
-      halfSheet: { type: Number, default: 1 }
+      quickFive: { type: Number },
+      firstLine: { type: Number },
+      secondLine: { type: Number },
+      thirdLine: { type: Number },
+      houseFull: { type: Number },
+      set: { type: Number },
+      halfSet: { type: Number }
     },
     winners : {
-      earlyFive: { type: [playerInfoSchema], default: [] },
+      quickFive: { type: [playerInfoSchema], default: [] },
       firstLine: { type: [playerInfoSchema], default: [] },
       secondLine: { type: [playerInfoSchema], default: [] },
       thirdLine: { type: [playerInfoSchema], default: [] },
-      fullHouse: { type: [playerInfoSchema], default: [] },
-      fullSheet: { type: [playerInfoSchema], default: [] },
-      halfSheet: { type: [playerInfoSchema], default: [] }
-    }
-  }
+      houseFull: { type: [playerInfoSchema], default: [] },
+      set: { type: [playerInfoSchema], default: [] },
+      halfSet: { type: [playerInfoSchema], default: [] }
+    },
+  },
+  { timestamps: true }
 )
 
 export const gameDataModel = mongoose.model("gameData", gameDataSchema);

@@ -4,21 +4,22 @@ import { io } from "socket.io-client"
 
 import { useTicketStore } from '../store/ticketStore.js'
 import { useAuthStore } from "../store/authStore";
+import { useGameDataStore } from "../store/gameDataStore.js"
 import Ticket from '../components/Ticket'
 import LoadingAnimation from '../components/LoadingAnimation.jsx'
 
 const Home = () => {
+
+  const { viewGameData, gameData } = useGameDataStore();
+
   const { 
     viewTickets, 
     message, 
     isLoading,
-    role,
-
-
-  } = useTicketStore();
+    } = useTicketStore();
   const navigate = useNavigate();
 
-  const [time, setTime] = useState("00:00:00");
+  const [time, setTime] = useState("");
   const socketRef = useRef(null);
   const [playerIDInput, setPlayerIDInput] = useState("");
 
@@ -53,6 +54,48 @@ const Home = () => {
 
   // },[])
 
+
+  useEffect(() => {
+    const handleViewGameData = (_id) => {
+      viewGameData(_id)
+    }
+    handleViewGameData("latest");
+
+    
+  }, [viewGameData])
+  
+  useEffect(() => {
+    let timerInterval;
+
+    if (gameData?.startAt) {
+      const targetTime = new Date(gameData.startAt).getTime();
+
+      const updateTimer = () => {
+        const now = Date.now();
+        const diff = targetTime - now;
+
+        if (diff <= 0) {
+          setTime("00:00:00");
+          clearInterval(timerInterval);
+          return;
+        }
+
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        const format = (num) => String(num).padStart(2, "0");
+
+        setTime(`${format(hours)}:${format(minutes)}:${format(seconds)}`);
+      };
+
+      updateTimer(); // Initial call
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    return () => clearInterval(timerInterval);
+  }, [gameData?.startAt]);
+
   const handleViewTickets = async () => {
     try {
       await viewTickets(playerIDInput);
@@ -65,8 +108,6 @@ const Home = () => {
   const { isAuthenticated, user } = useAuthStore();
 
 
-
-
   return (
     <>
       {isAuthenticated && user.role == "admin" && <Link to={"/adminPanel"} className='bg-blue-500 absolute right-4 top-4 w-30 text-center text-black'>Admin Panel</Link>}
@@ -76,12 +117,16 @@ const Home = () => {
           Bingo Blast (Housie)
         </h1>
         <p className='text-center text-dark-text'>Where every number is a step closer to victory!</p>
-        <p className='flex justify-center items-baseline gap-2 m-auto my-3'>
-          Starts in <span className='font-semibold text-2xl'> {time}</span> 
-          <Link to={"/booking"} className='bg-blue-400 rounded-[4px] px-2 translate-y-[-4px] text-[0.9rem] font-semibold text-slate-900'>
-            Book now <i className="fa-solid fa-arrow-right text-[0.8rem]"></i>
-          </Link>
-        </p>
+        {gameData && time != "00:00:00" ?
+          <p className='flex justify-center items-baseline gap-2 m-auto my-3'>
+            Next game starts in <span className='font-semibold text-2xl'>{time}</span> 
+            <Link to={"/booking"} className='bg-blue-400 rounded-[4px] px-2 translate-y-[-4px] text-[0.9rem] font-semibold text-slate-900'>
+              Book now <i className="fa-solid fa-arrow-right text-[0.8rem]"></i>
+            </Link>
+          </p> 
+          : 
+          <p className='flex justify-center items-baseline gap-2 m-auto my-3 font-bold text-red-500 text-[1.3rem]'>Game is Live!</p>
+        }
       </header>
 
       {/* search ticket using ID & whatsapp contact link */}
@@ -119,8 +164,8 @@ const Home = () => {
       </section>
 
       <section className='grid grid-cols-4 max-lg:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1 gap-2 w-[calc(100%-30px)] mb-10 m-auto'>
-        {Array(10).fill("").map((_,index) => (
-          <Ticket key={index} tno={index+1} data={[6, 0, 0, 33, 0, 0, 68, 71, 84, 0, 16, 0, 31, 46, 57, 0, 0, 83, 0, 0, 26, 0, 49, 52, 61, 0, 86]}/>
+        {Array(6).fill("").map((_,index) => (
+          <Ticket key={index} tno="Sample" data={[6, 0, 0, 33, 0, 0, 68, 71, 84, 0, 16, 0, 31, 46, 57, 0, 0, 83, 0, 0, 26, 0, 49, 52, 61, 0, 86]}/>
         ))}
       </section>
     </>

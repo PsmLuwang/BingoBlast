@@ -15,6 +15,7 @@ const gameDataSchema = new mongoose.Schema(
     startAt : { type: Date, required: true },
     callNum : { type: Array, default: [] },
     isBookingOpen : { type: Boolean, default: false },
+    gameStatus : { type: String, enum: ["Preparation", "Ongoing", "Game-Over"], default: "Preparation" },
     maxWinner : {
       quickFive: { type: Number },
       firstLine: { type: Number },

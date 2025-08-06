@@ -4,6 +4,7 @@ import { useAuthStore } from "./store/authStore";
 
 import Home from "./pages/Home";
 import Booking from "./pages/Booking";
+import BookingSuccess from "./pages/BookingSuccess";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 
@@ -49,6 +50,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/booking" element={<Booking />} />
+      <Route path="/booking/status" element={<BookingSuccess />} />
       
       <Route path="/register" 
         element={

@@ -3,7 +3,7 @@ import { ticketModel } from "../models/ticketsModel.js";
 import { bookingSuccess } from "../email/bookingSuccess.js"
 import { sendEmail } from "../email/sendEmail.js"
 import { gameDataModel } from "../models/gameDataModel.js";
-import { userModel } from "../models/userModel.js";
+
 
 
 
@@ -15,28 +15,22 @@ export const viewTicket = async (req, res) => {
   }
   try {
     const ticketDetails = await ticketModel.findOne({ playerID });
-    if (ticketDetails) {
-      res.status(200).json({ 
-        responseFor: "tickets",
-        success: true,
-        playerID: ticketDetails.playerID,
-        payment: ticketDetails.payment,
-        tickets: ticketDetails.tickets
-      });
+    if (!ticketDetails) {
+      res.status(404).json({ success: false, message: "Wrong player ID." }) 
     }
 
-    const userDetails = await userModel.findOne({ email: playerID });
-    if (userDetails) {
-      res.status(200).json({
-        responseFor: "user",
-        name: userDetails.name,
-        email: userDetails.email,
-        phone: userDetails.phone,
-        role: userDetails.role
-      })
-    } else {
-      res.json({ success: false, message: "Wrong player ID." })
+    // Fetch game details using the gameID from ticket
+    const gameDetails = await gameDataModel.findById(ticketDetails.gameID).lean();
+
+    if (!gameDetails) {
+      return res.status(404).json({ success: false, message: "Game not found." });
     }
+
+    const { phone, email, ...buyerWithoutSensitiveInfo } = ticketDetails.buyer || {};
+    res.status(200).json({ 
+      success: true,
+      ticketsDetails: {...ticketDetails._doc, buyer: buyerWithoutSensitiveInfo, gameDetails}
+    });
 
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });

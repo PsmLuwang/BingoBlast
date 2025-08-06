@@ -3,11 +3,13 @@ import Ticket from '../components/Ticket'
 import LoadingAnimation from '../components/LoadingAnimation'
 import { useTicketStore } from "../store/ticketStore"
 import { useGameDataStore } from "../store/gameDataStore.js"
+import { useNavigate } from 'react-router-dom'
 
 const Booking = () => {
   // const [tickets, setTickets] = useState([]);
+  const navigate = useNavigate();
   const { viewGameData, gameData } = useGameDataStore();
-  const { generateTickets, isLoading, message, tickets, error, bookingTickets } = useTicketStore();
+  const { generateTickets, isLoading, generatedTickets, error, bookingTickets } = useTicketStore();
   const [numOfTickets, setNumOfTickets] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -29,8 +31,10 @@ const Booking = () => {
 
   
 
+  const [generateProcessing, setGenerateProcessing] = useState(false)
   // generate new tickets
   const handleGenerateTickets = async () => {
+    setGenerateProcessing(true)
     const count = parseInt(numOfTickets);
     try {
       await generateTickets(count);
@@ -38,19 +42,36 @@ const Booking = () => {
     } catch (error) {
       console.error(error);
     }
+    setGenerateProcessing(false)
   };
 
   // book tickets
+  const [checkBookingAvailable, setCheckBookingAvailable] = useState(true)
+  const [bookingProcessing, setBookingProcessing] = useState(false)
+  const [isBookingFailed, setIsBookingFailed] = useState(false)
   const handleBookingTickets = async () => {
+    if (gameData && (new Date(gameData.startAt).getTime() <= Date.now() + 5 * 60 * 1000 || !gameData.isBookingOpen) ) {
+      setCheckBookingAvailable(false)
+    }
+    setBookingProcessing(true)
     try {
-      const selectedTickets = tickets.map(ticket => {
+      const selectedTickets = generatedTickets.map(ticket => {
         return ticket.data;
       })
-      await bookingTickets(gameData._id, name, phone, email, selectedTickets);
+      const result = await bookingTickets(gameData._id, name, phone, email, selectedTickets);
       
+      
+      if (!result?.playerID) {
+        setIsBookingFailed(true)
+        setBookingProcessing(false)
+        return
+      } else {
+        navigate(`/booking/status?playerID=${result.playerID}`)
+      }
     } catch (error) {
       console.error(error);
     }
+    setBookingProcessing(false)
   };
 
 
@@ -118,16 +139,19 @@ const Booking = () => {
             value={numOfTickets}
             onChange={(e) => setNumOfTickets(e.target.value)}
           />
-          <button onClick={handleGenerateTickets} className='bg-blue-400 px-3 rounded-md cursor-pointer text-[0.9rem] text-slate-900 font-semibold'>Generate</button>
+          <button onClick={handleGenerateTickets} className='bg-blue-400 px-3 w-26 rounded-md cursor-pointer text-[0.9rem] text-slate-900 font-semibold'>
+            {generateProcessing ? <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full"></span> : "Generate"}
+          </button>
         </div>
       </div>
 
       {error && (<p className='text-center text-red-500 my-2'>{error}</p>)}
+      {isBookingFailed && (<p className='text-center text-red-500 my-2'>Booking Failed</p>)}
       {isLoading && (<LoadingAnimation />)}
       {/* ticket display */}
-      {tickets.length > 0 && (
+      {generatedTickets.length > 0 && (
         <section className='grid grid-cols-1 gap-2 w-[calc(100%-30px)] mx-auto mt-3 max-w-100'>
-          {tickets.map((ticket, index) => (
+          {generatedTickets.map((ticket, index) => (
             <Ticket key={index} tno={ticket.tno} data={ticket.data} />
           ))}
         </section> 
@@ -135,7 +159,20 @@ const Booking = () => {
 
       {/* submit Btn */}
       <section className='w-[calc(100%-30px)] mx-auto max-w-100 mb-20 mt-4'>
-        <button onClick={handleBookingTickets} className='w-full bg-green-600 rounded-md p-2 cursor-pointer font-semibold'>Book now</button>
+        {checkBookingAvailable ? (
+          bookingProcessing ? (
+            <button className='w-full bg-green-600 rounded-md p-2 cursor-pointer font-semibold'>
+              <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full"></span>
+            </button>
+          ) : (
+            <button onClick={handleBookingTickets} className='w-full bg-green-600 rounded-md p-2 cursor-pointer font-semibold'>
+              Book now
+            </button>
+          )
+        ) : (
+          <button className='w-full bg-red-600 rounded-md p-2 cursor-pointer font-semibold'>Booking is closed</button>
+        )}
+        
       </section>
     </div>
   )

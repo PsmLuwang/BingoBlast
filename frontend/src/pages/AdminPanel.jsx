@@ -71,7 +71,7 @@ const AdminPanel = () => {
     setTotalPaidTickets(paid.reduce((acc, player) => acc + player.tickets.length, 0));
     setTotalUnpaidTickets(unpaid.reduce((acc, player) => acc + player.tickets.length, 0));
     
-  }, [players, viewGameData])
+  }, [players, viewGameData,])
 
   const [updatingPlayerId, setUpdatingPlayerId] = useState(null);
 
@@ -116,14 +116,16 @@ const AdminPanel = () => {
       {/* user management + ticket management*/}
       <section>
         {/* Coming Game Status */}
-        <h1 className='max-w-7xl mt-4 m-auto w-[calc(100%-30px)] font-medium'>Coming Game Status :</h1>
         {isLoading && <p className='absolute left-[50%] top-30 translate-x-[-50%]'>Loading...</p>}
         {gameData && <div className='max-w-7xl my-4 pb-4 m-auto w-[calc(100%-30px)] text-[0.9rem] grid sm:grid-cols-2 grid-cols-1 gap-2 border-b-2 border-slate-600'>
+          <h1><span className='font-medium text-blue-500'>Coming Game Status :</span> {gameData.gameStatus}</h1>
+
           <h1><span className='font-medium text-blue-500'>Game ID: </span>{gameData._id}</h1>
           <h1>
             <span className='font-medium text-blue-500'>Start Time: </span>
             {formattedDateTime(gameData.startAt)}
           </h1>
+          <h1><span className='font-medium text-blue-500'>Booking: </span>{gameData.isBookingOpen ? "Open" : "Closed"}</h1>
           
           <div className='flex gap-3 flex-nowrap'>
             <span className='font-medium text-blue-500'>Players: </span>
@@ -143,7 +145,6 @@ const AdminPanel = () => {
             </p>
           </div>
 
-          <h1><span className='font-medium text-blue-500'>Booking: </span>{gameData.isBookingOpen ? "Open" : "Closed"}</h1>
 
           <div>
             <h1 className='font-medium'>Winner Count :</h1>

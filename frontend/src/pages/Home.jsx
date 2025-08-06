@@ -187,7 +187,7 @@ const Home = () => {
       {ticketsDetails.tickets && 
         <div className='text-center w-48 m-auto mb-3'>
           {ticketsDetails.gameDetails.gameStatus == "Preparation" 
-            ? <p className='bg-blue-500/15 text-blue-600 py-1'>Upcomming Tickets</p> 
+            ? <p className='bg-blue-500/15 text-blue-600 py-1'>Upcoming Tickets</p> 
             : ticketsDetails.gameDetails.gameStatus == "Live" 
             ? <p className='bg-green-500/15 text-green-600 py-1'>Running Tickets</p> 
             : <p className='bg-red-500/15 text-red-600 py-1'>Expired Tickets!</p>

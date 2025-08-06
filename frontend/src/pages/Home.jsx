@@ -185,7 +185,7 @@ const Home = () => {
       </section>
 
       {ticketsDetails.tickets && 
-        <div className='text-center text-[0.9rem] w-50 m-auto mb-3 flex gap-2'>
+        <div className='text-center text-[0.9rem] w-56 m-auto mb-3 flex gap-2'>
           {ticketsDetails.gameDetails.gameStatus == "Preparation" 
             ? <p className='bg-blue-500/15 text-blue-600 py-1 px-2'>Upcoming Tickets</p> 
             : ticketsDetails.gameDetails.gameStatus == "Live" 

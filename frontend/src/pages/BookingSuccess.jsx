@@ -55,8 +55,8 @@ const BookingSuccess = () => {
     })
   }
 
-  // if (loading) return <div className="text-center my-10">Loading booking details...</div>;
-  // if (error) return <div className="text-red-500 text-center my-10">{error}</div>;
+  if (loading) return <div className="text-center my-10">Loading booking details...</div>;
+  if (error) return <div className="text-red-500 text-center my-10">{error}</div>;
 
   return (
     <div className="p-4 max-w-lg m-auto">

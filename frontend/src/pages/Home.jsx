@@ -154,7 +154,7 @@ const Home = () => {
             id='playerID'
             onChange={(e) => setPlayerIDInput(e.target.value)}
           />
-          <button onClick={handleViewTickets} className='bg-green-600 w-24 font-semibold p-1 px-2 text-[0.8rem] h-full rounded-[30px] cursor-pointer'>
+          <button onClick={handleViewTickets} className='bg-green-600 w-24 font-semibold p-1 px-1 text-[0.8rem] h-full rounded-[30px] cursor-pointer'>
             {viewTicketsLoading ? 
               <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full"></span>
             : 

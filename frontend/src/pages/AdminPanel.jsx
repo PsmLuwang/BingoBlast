@@ -3,6 +3,7 @@ import { useAuthStore } from "../store/authStore.js"
 import { useGameDataStore } from "../store/gameDataStore.js"
 import GameUploadForm from "../components/GameUploadForm.jsx"
 import { useState, useEffect } from 'react';
+import socket from "../socket";
 import LoadingAnimation from "../components/LoadingAnimation.jsx"
 const AdminPanel = () => {
 
@@ -82,6 +83,24 @@ const AdminPanel = () => {
 
     setUpdatingPlayerId(null);   
   }
+
+
+  // game start 
+  const [startGameLoading, setStartGameLoading] = useState(false);
+  const startGame = (gameID) => {
+    setStartGameLoading(true);
+    socket.emit("start-game", { gameID }, (res) => {
+      if (res?.error) {
+        alert(res.error);
+        setStartGameLoading(false);
+        return;
+      }
+      viewGameData("latest").finally(() => {
+        setStartGameLoading(false);
+      });
+    });
+  }
+  
   
   return (
     <section>
@@ -157,7 +176,20 @@ const AdminPanel = () => {
             <h1><span className='font-medium text-blue-500'>Third Line: </span>{gameData.maxWinner.thirdLine}</h1>
           </div>
 
-          
+          {gameData && 
+            <button onClick={() => startGame(gameData._id)} className={`${gameData.gameStatus == "Preparation"  ? "bg-green-500" : gameData.gameStatus == "Ongoing"  ? "bg-red-500" : "bg-slate-500" } px-2 w-30 h-8 rounded-md text-[0.9rem]`}>
+              {startGameLoading ? (
+                <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full"></span>
+              ) : (
+                gameData.gameStatus == "Preparation" 
+                  ? "Start" 
+                  : gameData.gameStatus == "Ongoing" 
+                  ? "Live"
+                  : "Game Over"
+              )}
+            </button>
+          }
+
         </div>}
 
 

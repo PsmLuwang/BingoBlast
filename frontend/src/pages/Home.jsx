@@ -1,65 +1,45 @@
 import { useEffect, useState, useRef } from 'react'
-import { Link, useNavigate  } from "react-router-dom"
-import { io } from "socket.io-client"
+import { Link } from "react-router-dom"
+import socket from "../socket";
 
+// stores
 import { useTicketStore } from '../store/ticketStore.js'
 import { useAuthStore } from "../store/authStore";
 import { useGameDataStore } from "../store/gameDataStore.js"
+
+// components
 import Ticket from '../components/Ticket'
-import LoadingAnimation from '../components/LoadingAnimation.jsx'
+
+// helper
+import { speakNumber } from "../extraJS/speech.js"
 
 const Home = () => {
-
+  const { isAuthenticated, user } = useAuthStore(); // check user ? admin / to show admin panel btn
   const { viewGameData, gameData } = useGameDataStore();
-
   const { viewTickets, ticketsDetails, error } = useTicketStore();
-  const navigate = useNavigate();
-
   const [time, setTime] = useState("");
-  const socketRef = useRef(null);
   const [playerIDInput, setPlayerIDInput] = useState("");
+  const ticketDisplayRef = useRef(null);
+  const [viewTicketsLoading, setViewTicketsLoading] = useState(false)
 
-  // useEffect(() => {
-  //   // Connect to Socket.io server
-  //   socketRef.current = io(
-  //     process.env.NODE_ENV === 'production' 
-  //       ? window.location.origin 
-  //       : 'http://localhost:5000',
-  //     {
-  //       reconnectionAttempts: 5,
-  //       reconnectionDelay: 1000,
-  //       autoConnect: true
-  //     }
-  //   );
-
-  //   // Timer event listener
-  //   const handleTimeUpdate = (time) => {
-  //     setTime(time);
-  //   };
-
-  //   socketRef.current.on('time', handleTimeUpdate);
+  // socket 
+  const [numbersCalled, setNumbersCalled] = useState([]);
+  const [currentNumber, setCurrentNumber] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [isMuted, setIsMuted] = useState(false);
+  const [onlineCount, setOnlineCount] = useState("0")
 
 
-  //   // Cleanup function
-  //   return () => {
-  //     if (socketRef.current) {
-  //       socketRef.current.off('time', handleTimeUpdate); // Remove specific listener
-  //       socketRef.current.disconnect();
-  //     }
-  //   };
-
-  // },[])
-
-
+  // load the latest game data once
   useEffect(() => {
     const handleViewGameData = (_id) => {
       viewGameData(_id)
     }
     handleViewGameData("latest");
-
-    
   }, [viewGameData])
   
+
+  // countdown 
   useEffect(() => {
     let timerInterval;
 
@@ -94,13 +74,10 @@ const Home = () => {
 
 
   // view tickets
-  const ticketDisplayRef = useRef(null);
-  const [viewTicketsLoading, setViewTicketsLoading] = useState(false)
   const handleViewTickets = async () => {
     try {
       setViewTicketsLoading(true)
       await viewTickets(playerIDInput);
-      
       setViewTicketsLoading(false);
 
       // Auto scroll to ticket section after loading
@@ -108,23 +85,75 @@ const Home = () => {
         if (ticketDisplayRef.current) {
           ticketDisplayRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-      }, 100); // short delay to ensure DOM update
+      }, 100);
     } catch (error) {
       setViewTicketsLoading(false)
       console.log(error);
     }
   };
-  
-  
 
-  const { isAuthenticated, user } = useAuthStore();
+
+  const gameID = "6892e62eb9180efb0b3ed53b"
+
+  // socket
+  // Join game on page load
+  useEffect(() => {
+    socket.emit("join-game", { gameID });
+
+    socket.on("online-count", ({ count }) => {
+      setOnlineCount(count)
+    });
+
+    // Listen for game state (past numbers, winners)
+    socket.on("game-state", (game) => {
+      setNumbersCalled(game || []);
+      setCurrentNumber(game[game.length - 1]);
+    });
+
+    // Listen for game start
+    socket.on("game-started", (data) => {
+      setMessages((prev) => [...prev, data.message]);
+      console.log(data.message);
+      
+    });
+
+    // Listen for new numbers
+    socket.on("new-number", (number) => {
+      setCurrentNumber(number);
+      setNumbersCalled((prev) => [...prev, number]);
+      if (!isMuted) {
+        speakNumber(number, "male", 1)
+      }
+    });
+
+    // Listen for ticket claims
+    socket.on("ticket-claimed", (data) => {
+      setMessages((prev) => [...prev, `🎉 ${data.playerName} claimed ${data.type}`]);
+    });
+
+    return () => {
+      socket.off("game-state");
+      socket.off("game-started");
+      socket.off("new-number");
+      socket.off("ticket-claimed");
+    };
+  }, 
+  [gameID]
+);
 
 
   return (
     <>
+      <button
+        onClick={() => setIsMuted(prev => !prev)}
+        className="bg-gray-700 text-white px-4 py-2 rounded"
+      >
+        {isMuted ? "Mute" : "Unmute"}
+      </button>
       {isAuthenticated && user.role == "admin" && <Link to={"/adminPanel"} className='bg-blue-500 absolute right-4 top-4 w-30 text-center text-black'>Admin Panel</Link>}
       {/* header */}
       <header className='py-25 px-3 max-sm:py-18'>
+        <p className='bg-blue-500 w-34 text-center rounded-md text-[0.9rem] m-auto mb-2'>Online Players : {onlineCount}</p>
         <h1 className="text-3xl md:text-5xl font-bold max-md:font-black pb-2 bg-gradient-to-r from-blue-300 to-red-600 bg-clip-text text-transparent text-center max-w-120 w-[calc(100%-30px)] m-auto">
           Bingo Blast (Housie)
         </h1>
@@ -171,9 +200,14 @@ const Home = () => {
       {/* number grid */}
       <div className="grid grid-cols-9 bg-slate-800 my-8 p-3 max-sm:p-2 gap-3 max-sm:gap-2 sm:py-10 overflow-x-scroll hide-scrollbar">
         {[...Array(90)].map((_, i) => (
-          <div className={`${i+1 === 31 ? 'bg-green-600' : Math.floor(Math.random() * 10) > 3 ? 'border-2 border-slate-400 text-slate-400' : "bg-slate-400 text-slate-900"} w-10 h-10 max-sm:w-7 max-sm:h-7 max-sm:text-[0.9rem] font-semibold flex justify-center items-center m-auto rounded-[12px] sm:rounded-2xl`}
-            key={i} 
-            // style={{order: i % 10 * 9 + Math.floor(i / 10)}} 
+          <div 
+            className={`${i+1 === currentNumber ? 'bg-green-600' 
+              : !numbersCalled.includes(i+1)
+              ? 'border-2 border-slate-400 text-slate-400' 
+              : "bg-slate-400 text-slate-900"
+            } w-10 h-10 max-sm:w-7 max-sm:h-7 max-sm:text-[0.9rem] font-semibold flex justify-center items-center m-auto rounded-[12px] sm:rounded-2xl`}
+            key={i+1} 
+            style={{order: i % 10 * 9 + Math.floor(i / 10)}} 
           >
             {i + 1}
           </div>
@@ -181,14 +215,14 @@ const Home = () => {
       </div>
       
       <section className='bg-green-600 sticky top-0 py-2 px-4 text-center font-semibold mb-3'>
-        <h1>Last call no. : 31</h1>
+        <h1>Last call no. : {currentNumber ? currentNumber : "0"}</h1>
       </section>
 
       {ticketsDetails.tickets && 
-        <div className='text-center text-[0.9rem] w-56 m-auto mb-3 flex gap-2'>
+        <div className='text-center text-[0.9rem] w-56 m-auto mb-3 flex justify-center gap-2'>
           {ticketsDetails.gameDetails.gameStatus == "Preparation" 
             ? <p className='bg-blue-500/15 text-blue-600 py-1 px-2'>Upcoming Tickets</p> 
-            : ticketsDetails.gameDetails.gameStatus == "Live" 
+            : ticketsDetails.gameDetails.gameStatus == "Ongoing" 
             ? <p className='bg-green-500/15 text-green-600 py-1 px-2'>Running Tickets</p> 
             : <p className='bg-red-500/15 text-red-600 py-1 px-2'>Expired Tickets!</p>
           }
@@ -201,11 +235,11 @@ const Home = () => {
       }
       <section id='ticketDisplay' ref={ticketDisplayRef} className='grid grid-cols-4 max-lg:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1 gap-2 w-[calc(100%-30px)] mb-10 m-auto'>
         {ticketsDetails.length <= 0 ? Array(6).fill("").map((_,index) => (
-          <Ticket key={index} tno="Sample" data={[6, 0, 0, 33, 0, 0, 68, 71, 84, 0, 16, 0, 31, 46, 57, 0, 0, 83, 0, 0, 26, 0, 49, 52, 61, 0, 86]}/>
+          <Ticket key={index} tno="Sample" data={[6, 0, 0, 33, 0, 0, 68, 71, 84, 0, 16, 0, 31, 46, 57, 0, 0, 83, 0, 0, 26, 0, 49, 52, 61, 0, 86]} called={numbersCalled}/>
         ))
         :
           ticketsDetails.tickets.map((ticket, index) => (
-            <Ticket key={index} tno={ticket.tno} data={ticket.data} name={ticketsDetails.buyer.name} />
+            <Ticket key={index} tno={ticket.tno} data={ticket.data} name={ticketsDetails.buyer.name} called={numbersCalled} />
           ))
         }
       </section>

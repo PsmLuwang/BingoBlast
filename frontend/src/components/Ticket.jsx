@@ -1,6 +1,5 @@
 
-const called = []
-const Ticket = ({ tno, data, name }) => {
+const Ticket = ({ tno, data, name, called }) => {
   return (
     <section>
       <div className='flex justify-between p-2 text-[0.9rem]'>

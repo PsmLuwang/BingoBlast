@@ -152,6 +152,7 @@ const Home = () => {
     });
 
     return () => {
+      socket.off("game-over");
       socket.off("game-state");
       socket.off("game-started");
       socket.off("new-number");

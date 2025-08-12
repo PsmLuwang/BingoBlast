@@ -141,18 +141,36 @@ function startNumberCalling(io, gameID) {
       if (player.tickets.length >= 3) {
         const booleanTickets = player.tickets.map(ticket => ticket.data.some(element => calledNumbers.includes(element)));
         const isSet = booleanTickets.every(element => element == true) && booleanTickets.length == 6;
-        const isHalfSet = () => {
+        const checkHalfSet  = () => {
+          let startingIndexForThreeTrue;
           let consecutiveCount = 0;
           for (let i = 0; i < booleanTickets.length; i++) {
             if (booleanTickets[i]) {
+              startingIndexForThreeTrue = i-2
               consecutiveCount++
-              if (consecutiveCount >= 3) return true;
+              if (consecutiveCount >= 3) return {isHalfSet: true, startingIndexForThreeTrue};
             } else {
               consecutiveCount = 0;
             }
           }
-          return false;
-        }  
+          return {isHalfSet: false, startingIndexForThreeTrue};
+        }
+        const { isHalfSet, startingIndexForThreeTrue } = checkHalfSet();
+
+        if (isHalfSet && gameData.maxWinner.halfSet > gameData.winners.halfSet.length
+          && !gameData.winners.halfSet.some(win => win.players.some(p => String(p.playerID) == String(player.playerID)))
+        ) {
+          player.tickets.slice(startingIndexForThreeTrue, startingIndexForThreeTrue+3)
+          .forEach(ticket => {
+            halfSetBatch.push({
+              ticket: ticket,
+              name: player.buyer.name,
+              phone: player.buyer.phone,
+              email: player.buyer.email,
+              playerID: player.playerID
+            })
+          })
+        }
 
         if (isSet && gameData.maxWinner.set > gameData.winners.set.length
           && !gameData.winners.set.some(win => win.players.some(p => String(p.playerID) == String(player.playerID)))
@@ -183,6 +201,7 @@ function startNumberCalling(io, gameID) {
       || secondLineBatch.length > 0 
       || thirdLineBatch.length > 0
       || setBatch.length > 0
+      || halfSetBatch.length > 0
     ) {
       const game = await gameDataModel.findById(gameID);
 
@@ -207,6 +226,9 @@ function startNumberCalling(io, gameID) {
 
       if (setBatch.length > 0) {
         claims.push({ prizeType: "Set", rank: game.winners.set.length + 1, players: setBatch, lastCall: nextNumber });
+      }
+      if (halfSetBatch.length > 0) {
+        claims.push({ prizeType: "Half Set", rank: game.winners.halfSet.length + 1, players: halfSetBatch, lastCall: nextNumber });
       }
 
       // Emit all claims together so the frontend never misses any
@@ -270,6 +292,16 @@ function startNumberCalling(io, gameID) {
           rank: game.winners.set.length + 1,
           lastCall: nextNumber,
           players: setBatch
+        });
+      }
+
+      // Set
+      if (halfSetBatch.length > 0) {
+        game.winners.halfSet.push({
+          prizeType: "Half Set",
+          rank: game.winners.halfSet.length + 1,
+          lastCall: nextNumber,
+          players: halfSetBatch
         });
       }
 

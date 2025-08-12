@@ -39,6 +39,13 @@ app.get("/", (req,res) => {
 app.get("/delete", async (req, res) => {
   const game = await gameDataModel.findById(req.query.id);
   game.callNum = [];
+  game.winners.houseFull = [];
+  game.winners.quickFive = [];
+  game.winners.firstLine = [];
+  game.winners.secondLine = [];
+  game.winners.thirdLine = [];
+  game.winners.set = [];
+  game.winners.halfSet = [];
   await game.save()
   res.status(200).json({ gameData: game, success: true })
 })

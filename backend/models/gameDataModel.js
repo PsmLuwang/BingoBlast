@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 
 const playerInfoSchema = new mongoose.Schema({
-  ticket: { type: String, required: true },
+  ticket: {
+    data: { type: Array, required: true },
+    tno: { type: Number, required: true },
+    _id: { type: mongoose.Schema.Types.ObjectId, required: true }
+  },
   name: { type: String, required: true },
   phone: { type: String, required: true },
   email: { type: String, required: false },
@@ -26,16 +30,31 @@ const gameDataSchema = new mongoose.Schema(
       halfSet: { type: Number }
     },
     winners : {
-      quickFive: { type: [playerInfoSchema], default: [] },
-      firstLine: { type: [playerInfoSchema], default: [] },
-      secondLine: { type: [playerInfoSchema], default: [] },
-      thirdLine: { type: [playerInfoSchema], default: [] },
-      houseFull: { type: [playerInfoSchema], default: [] },
-      set: { type: [playerInfoSchema], default: [] },
-      halfSet: { type: [playerInfoSchema], default: [] }
+      quickFive: [
+        {rank: Number, prizeType: String, lastCall: Number, players: [playerInfoSchema]}
+      ],
+      firstLine: [
+        {rank: Number, prizeType: String, lastCall: Number, players: [playerInfoSchema]}
+      ],
+      secondLine: [
+        {rank: Number, prizeType: String, lastCall: Number, players: [playerInfoSchema]}
+      ],
+      thirdLine: [
+        {rank: Number, prizeType: String, lastCall: Number, players: [playerInfoSchema]}
+      ],
+      houseFull: [
+        {rank: Number, prizeType: String, lastCall: Number, players: [playerInfoSchema]}
+      ],
+      set: [
+        {rank: Number, prizeType: String, lastCall: Number, players: [playerInfoSchema]}
+      ],
+      halfSet: [
+        {rank: Number, prizeType: String, lastCall: Number, players: [playerInfoSchema]}
+      ]
     },
   },
   { timestamps: true }
 )
+
 
 export const gameDataModel = mongoose.model("gameData", gameDataSchema);

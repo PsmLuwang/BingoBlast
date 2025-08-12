@@ -28,6 +28,7 @@ const Home = () => {
   const [messages, setMessages] = useState([]);
   const [isMuted, setIsMuted] = useState(false);
   const [onlineCount, setOnlineCount] = useState("0")
+  const [winner, setWinner] = useState([])
 
 
   // load the latest game data once
@@ -35,7 +36,9 @@ const Home = () => {
     const handleViewGameData = (_id) => {
       viewGameData(_id)
     }
+
     handleViewGameData("latest");
+    
   }, [viewGameData])
   
 
@@ -93,12 +96,11 @@ const Home = () => {
   };
 
 
-  const gameID = "6892e62eb9180efb0b3ed53b"
-
   // socket
   // Join game on page load
   useEffect(() => {
-    socket.emit("join-game", { gameID });
+    socket.emit("join-game");
+    
 
     socket.on("online-count", ({ count }) => {
       setOnlineCount(count)
@@ -106,8 +108,10 @@ const Home = () => {
 
     // Listen for game state (past numbers, winners)
     socket.on("game-state", (game) => {
-      setNumbersCalled(game || []);
-      setCurrentNumber(game[game.length - 1]);
+      setNumbersCalled(game.callNum || []);
+      setCurrentNumber(game.callNum[game.callNum.length - 1]);
+      const flatArray = Object.values(game.winners).flat();
+      setWinner(flatArray)
     });
 
     // Listen for game start
@@ -126,9 +130,9 @@ const Home = () => {
       }
     });
 
-    // Listen for ticket claims
+    //  listen for new winner
     socket.on("ticket-claimed", (data) => {
-      setMessages((prev) => [...prev, `🎉 ${data.playerName} claimed ${data.type}`]);
+      setWinner((prev) => [...prev, ...data])
     });
 
     return () => {
@@ -137,9 +141,7 @@ const Home = () => {
       socket.off("new-number");
       socket.off("ticket-claimed");
     };
-  }, 
-  [gameID]
-);
+  },[viewGameData]);
 
 
   return (
@@ -243,8 +245,37 @@ const Home = () => {
           ))
         }
       </section>
+
+      
+      {/* winner board */}
+      <section className='bg-slate-800 min-h-100 py-4 pb-40'>
+        <h1 className='text-center text-[1.2rem] font-medium'>Winner Board</h1>
+        <section className='flex flex-col gap-2 mt-4'>
+          {winner.map((claim, index) => (
+            <div key={index} className='w-[calc(100%-30px)] m-auto p-2 max-w-250 bg-slate-700 rounded-md'>
+              {/* winner type */}
+              <div className='flex justify-between text-green-500 font-medium'>
+                <h4>{claim.prizeType}-{claim.rank}</h4>
+                <h4 className='bg-slate-800 text-[0.8rem] px-2 py-1 w-22 text-center'>Last Call: {claim.lastCall}</h4>
+              </div>
+              {/* winner details */}
+              {claim.players.map((player, i) => (
+                <div key={i} className='flex items-center justify-between gap-2 text-[0.9rem]'>
+                  <div>
+                    <p className='font-medium'>{player.name}</p>
+                    <p className='text-[0.8rem]'>{player.playerID}</p>
+                  </div>
+                  <p className='bg-slate-800 w-20 py-1 text-[0.8rem] text-center'>T.no: {player.ticket.tno}</p>
+                </div>
+              ))}
+            </div>
+          ))}
+
+        </section>
+      </section>
     </>
   )
 }
 
 export default Home
+

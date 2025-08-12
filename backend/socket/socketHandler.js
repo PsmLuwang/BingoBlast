@@ -34,31 +34,274 @@ function startNumberCalling(io, gameID) {
   if (gameInterval) clearInterval(gameInterval);
 
   gameInterval = setInterval(async () => {
+    // send game over if all the num are called
     if (availableNumbers.length === 0) {
       clearInterval(gameInterval);
       io.emit("game-over", { message: "All numbers called!" });
       return;
     }
 
+    // send new number 
     const nextNumber = availableNumbers.shift();
     calledNumbers.push(nextNumber);
-
-    io.emit("new-number", nextNumber);
-
-
+    await io.emit("new-number", nextNumber);
+    
+    
     // check new winner
-    // paidTickets.forEach(player => {
-    //   player.tickets.forEach(ticket => {
+    let pause = false
+    const houseFullBatch = []
+    const quickFiveBatch = []
+    const firstLineBatch = []
+    const secondLineBatch = []
+    const thirdLineBatch = []
 
-    //   })
-    // });
+    const setBatch = []
+    const halfSetBatch = []
+
+    for (const player of paidTickets) {
+      for (const ticket of player.tickets) {
+        const withoutZeroField = ticket.data.filter(num => num);
+
+        // check marked numbers
+        const isHouseFull = withoutZeroField.every(element => calledNumbers.includes(element));
+        const isQuickFive =  withoutZeroField.filter(element => calledNumbers.includes(element)).length == 5;
+        const isFirstLine = withoutZeroField.slice(0, 5).every(element => calledNumbers.includes(element));
+        const isSecondLine = withoutZeroField.slice(5, 10).every(element => calledNumbers.includes(element));
+        const isThirdLine = withoutZeroField.slice(10, 15).every(element => calledNumbers.includes(element));
+        
+        // check limits and set into batch
+        // houseFull
+        if (isHouseFull && gameData.maxWinner.houseFull > gameData.winners.houseFull.length 
+          && !gameData.winners.houseFull.some(win => win.players.some(p => p.ticket._id.equals(ticket._id)))
+        ) {
+          houseFullBatch.push({
+            ticket: ticket,
+            name: player.buyer.name,
+            phone: player.buyer.phone,
+            email: player.buyer.email,
+            playerID: player.playerID
+          })
+        }
+
+        // quickFive
+        if (isQuickFive && gameData.maxWinner.quickFive > gameData.winners.quickFive.length 
+          && !gameData.winners.quickFive.some(win => win.players.some(p => p.ticket._id.equals(ticket._id)))
+        ) {
+          quickFiveBatch.push({
+            ticket: ticket,
+            name: player.buyer.name,
+            phone: player.buyer.phone,
+            email: player.buyer.email,
+            playerID: player.playerID
+          })
+        }
+
+        // firstLine
+        if (isFirstLine && gameData.maxWinner.firstLine > gameData.winners.firstLine.length 
+          && !gameData.winners.firstLine.some(win => win.players.some(p => p.ticket._id.equals(ticket._id)))
+        ) {
+          firstLineBatch.push({
+            ticket: ticket,
+            name: player.buyer.name,
+            phone: player.buyer.phone,
+            email: player.buyer.email,
+            playerID: player.playerID
+          })
+        }
+
+        // secondLine
+        if (isSecondLine && gameData.maxWinner.secondLine > gameData.winners.secondLine.length 
+          && !gameData.winners.secondLine.some(win => win.players.some(p => p.ticket._id.equals(ticket._id)))
+        ) {
+          secondLineBatch.push({
+            ticket: ticket,
+            name: player.buyer.name,
+            phone: player.buyer.phone,
+            email: player.buyer.email,
+            playerID: player.playerID
+          })
+        }
+
+        // thirdLine
+        if (isThirdLine && gameData.maxWinner.thirdLine > gameData.winners.thirdLine.length 
+          && !gameData.winners.thirdLine.some(win => win.players.some(p => p.ticket._id.equals(ticket._id)))
+        ) {
+          thirdLineBatch.push({
+            ticket: ticket,
+            name: player.buyer.name,
+            phone: player.buyer.phone,
+            email: player.buyer.email,
+            playerID: player.playerID
+          })
+        }
+
+      }
+
+      // check for set and half set winner
+      if (player.tickets.length >= 3) {
+        const booleanTickets = player.tickets.map(ticket => ticket.data.some(element => calledNumbers.includes(element)));
+        const isSet = booleanTickets.every(element => element == true) && booleanTickets.length == 6;
+        const isHalfSet = () => {
+          let consecutiveCount = 0;
+          for (let i = 0; i < booleanTickets.length; i++) {
+            if (booleanTickets[i]) {
+              consecutiveCount++
+              if (consecutiveCount >= 3) return true;
+            } else {
+              consecutiveCount = 0;
+            }
+          }
+          return false;
+        }  
+
+        if (isSet && gameData.maxWinner.set > gameData.winners.set.length
+          && !gameData.winners.set.some(win => win.players.some(p => String(p.playerID) == String(player.playerID)))
+        ) {
+          player.tickets.forEach(ticket => {
+            setBatch.push({
+              ticket: ticket,
+              name: player.buyer.name,
+              phone: player.buyer.phone,
+              email: player.buyer.email,
+              playerID: player.playerID
+            })
+          })
+        }
+
+      }
+
+      
+    };
+
+    
+    
+    // if there is claim emit it and Save to DB
+    if (
+      houseFullBatch.length > 0 
+      || firstLineBatch.length > 0 
+      || quickFiveBatch.length > 0 
+      || secondLineBatch.length > 0 
+      || thirdLineBatch.length > 0
+      || setBatch.length > 0
+    ) {
+      const game = await gameDataModel.findById(gameID);
+
+      pause = true;
+      const claims = [];
+
+      if (houseFullBatch.length > 0) {
+        claims.push({ prizeType: "HouseFull", rank: game.winners.houseFull.length + 1, players: houseFullBatch, lastCall: nextNumber });
+      }
+      if (quickFiveBatch.length > 0) {
+        claims.push({ prizeType: "Quick 5", rank: game.winners.quickFive.length + 1, players: quickFiveBatch, lastCall: nextNumber });
+      }
+      if (firstLineBatch.length > 0) {
+        claims.push({ prizeType: "First Line", rank: game.winners.firstLine.length + 1, players: firstLineBatch, lastCall: nextNumber });
+      }
+      if (secondLineBatch.length > 0) {
+        claims.push({ prizeType: "Second Line", rank: game.winners.secondLine.length + 1, players: secondLineBatch, lastCall: nextNumber });
+      }
+      if (thirdLineBatch.length > 0) {
+        claims.push({ prizeType: "Third Line", rank: game.winners.thirdLine.length + 1, players: thirdLineBatch, lastCall: nextNumber });
+      }
+
+      if (setBatch.length > 0) {
+        claims.push({ prizeType: "Set", rank: game.winners.set.length + 1, players: setBatch, lastCall: nextNumber });
+      }
+
+      // Emit all claims together so the frontend never misses any
+      io.emit("ticket-claimed", claims);
 
 
+      // House Full
+      if (houseFullBatch.length > 0) {
+        game.winners.houseFull.push({
+          prizeType: "HouseFull",
+          rank: game.winners.houseFull.length + 1,
+          lastCall: nextNumber,
+          players: houseFullBatch
+        });
+      }
 
-    // Save to DB
-    await gameDataModel.findByIdAndUpdate(gameID, {
-      $push: { callNum: nextNumber }
-    });
+      // Quick 5
+      if (quickFiveBatch.length > 0) {
+        game.winners.quickFive.push({
+          prizeType: "Quick 5",
+          rank: game.winners.quickFive.length + 1,
+          lastCall: nextNumber,
+          players: quickFiveBatch
+        });
+      }
+
+      // First Line
+      if (firstLineBatch.length > 0) {
+        game.winners.firstLine.push({
+          prizeType: "First Line",
+          rank: game.winners.firstLine.length + 1,
+          lastCall: nextNumber,
+          players: firstLineBatch
+        });
+      }
+
+      // Second Line
+      if (secondLineBatch.length > 0) {
+        game.winners.secondLine.push({
+          prizeType: "Second Line",
+          rank: game.winners.secondLine.length + 1,
+          lastCall: nextNumber,
+          players: secondLineBatch
+        });
+      }
+
+      // Third Line
+      if (thirdLineBatch.length > 0) {
+        game.winners.thirdLine.push({
+          prizeType: "Third Line",
+          rank: game.winners.thirdLine.length + 1,
+          lastCall: nextNumber,
+          players: thirdLineBatch
+        });
+      }
+
+      // Set
+      if (setBatch.length > 0) {
+        game.winners.set.push({
+          prizeType: "Set",
+          rank: game.winners.set.length + 1,
+          lastCall: nextNumber,
+          players: setBatch
+        });
+      }
+
+      // Add called number once
+      game.callNum.push(nextNumber);
+      gameData = game;
+      await game.save();
+    } else {
+      await gameDataModel.findByIdAndUpdate(gameID, {
+        $push: { callNum: nextNumber }
+      });
+    }
+
+   
+
+    // check is there any remaining prize to be claimed
+    const maxWinnerCount = Object.values(gameData.maxWinner).reduce((sum, value) => sum + Number(value || 0), 0);
+    const alreadyClaimed = Object.values(gameData.winners).reduce((sum, array) => sum + array.length, 0);
+    // send game over
+    if (maxWinnerCount <= alreadyClaimed) {
+      clearInterval(gameInterval);
+      io.emit("game-over", { message: "All numbers called!" });
+      return;
+    }
+
+    // pause if there is claim
+    if (pause) {
+      clearInterval(gameInterval);
+      setTimeout(() => {
+        startNumberCalling(io, gameID)
+      }, 4000);
+    }
   }, 3000);
 }
 
@@ -74,11 +317,11 @@ export default function socketHandler(io) {
     
     
     // Player joins the game
-    socket.on("join-game", async ({ gameID }) => {
-      const game = await gameDataModel.findById(gameID);
-      // socket.emit("game-state", game); // Send all past numbers & winners 
+    socket.on("join-game", async () => {
+      const latestGame = await gameDataModel.findOne().sort({ createdAt: -1 })
+      
       socket.emit("online-count", { count: onlineCount });
-      socket.emit("game-state", calledNumbers); // Send all past numbers & winners 
+      socket.emit("game-state", latestGame); // Send all past numbers & winners 
     });
 
 
@@ -129,3 +372,60 @@ export default function socketHandler(io) {
 }
 
 
+// try {
+
+
+//       // check for new winner
+//       let pause = false;
+
+//       let winnerObjStructure = {
+//         rank: gameData.winners.houseFull.length + 1,
+//         player: []
+//       }
+//       for (const player of paidTickets) {
+//         for (const ticket of player.tickets) {
+//           const withoutZeroField = ticket.data.filter(num => num);
+
+//           const isHouseFull = withoutZeroField.every(element => calledNumbers.includes(element));
+//           if (
+//             isHouseFull 
+//             && gameData.maxWinner.houseFull > gameData.winners.houseFull.length
+//             && !gameData.winners.houseFull.some(win => win.player.some(p => p.ticket._id.equals(ticket._id)))
+//           ) {
+//             console.log("abc");
+            
+//             pause = true;
+//             gameData.winners.houseFull.push({
+//               rank: gameData.winners.houseFull.length + 1,
+//               player: [{
+//                 ticket: ticket,
+//                 playerID: player.playerID
+//               }]
+//             });
+
+//             await io.emit("ticket-claimed", { 
+//               message: "House Full!", 
+//               player, 
+//               ticket 
+//             });
+//           }
+//         }
+
+
+//       }
+
+//       // Save to DB
+//       await gameDataModel.findByIdAndUpdate(gameID, {
+//         $push: { callNum: nextNumber },
+//         // winners: gameData.winners
+//       });
+
+//       // Handle pause if needed
+//       if (pause) {
+//         clearInterval(gameInterval);
+//         setTimeout(() => startNumberCalling(io, gameID), 4000);
+//       }
+//     } catch (error) {
+//       console.error("Error in number calling:", error);
+//       clearInterval(gameInterval);
+//     }

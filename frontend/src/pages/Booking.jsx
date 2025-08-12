@@ -152,7 +152,7 @@ const Booking = () => {
       {generatedTickets.length > 0 && (
         <section className='grid grid-cols-1 gap-2 w-[calc(100%-30px)] mx-auto mt-3 max-w-100'>
           {generatedTickets.map((ticket, index) => (
-            <Ticket key={index} tno={ticket.tno} data={ticket.data} />
+            <Ticket key={index} tno={ticket.tno} data={ticket.data} called={[]}/>
           ))}
         </section> 
       )}

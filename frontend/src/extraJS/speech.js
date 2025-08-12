@@ -1,3 +1,22 @@
+let availableVoices = [];
+
+// Load voices and store them
+export function loadVoices() {
+  const updateVoices = () => {
+    availableVoices = window.speechSynthesis.getVoices();
+  };
+
+  window.speechSynthesis.onvoiceschanged = updateVoices;
+  updateVoices(); // in case voices are already available
+}
+
+// Call this at app start
+
+
+
+
+
+
 const digitWords = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 
 // speak full number
@@ -14,13 +33,16 @@ function numberToWords(num) {
 
 
 //speaking any text
-function speak(text, voiceType, rate) {
+export function speak(text, voiceType, rate) {
   if (!window.speechSynthesis) return;
   const u = new SpeechSynthesisUtterance(text);
   u.rate = rate;
-  u.voice = window.speechSynthesis.getVoices().find(v =>
+  // Pick voice based on keyword (e.g., "female" or "male")
+  const voice = availableVoices.find(v =>
     v.name.toLowerCase().includes(voiceType)
   );
+
+  if (voice) u.voice = voice;
   window.speechSynthesis.speak(u);
 }
 
@@ -40,9 +62,8 @@ export function speakNumber(num, voiceType, rate) {
 
   const utter = new SpeechSynthesisUtterance(speechText);
   utter.rate = rate;
-  utter.voice = window.speechSynthesis
-    .getVoices()
-    .find(v => v.name.toLowerCase().includes(voiceType));
+  const voice = availableVoices.find(v => v.name.toLowerCase().includes(voiceType.toLowerCase()));
+  if (voice) utter.voice = voice;
 
   window.speechSynthesis.speak(utter);
 }

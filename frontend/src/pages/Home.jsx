@@ -11,7 +11,8 @@ import { useGameDataStore } from "../store/gameDataStore.js"
 import Ticket from '../components/Ticket'
 
 // helper
-import { speakNumber } from "../extraJS/speech.js"
+import { speakNumber, speak, loadVoices } from "../extraJS/speech.js"
+loadVoices();
 
 const Home = () => {
   const { isAuthenticated, user } = useAuthStore(); // check user ? admin / to show admin panel btn
@@ -26,7 +27,7 @@ const Home = () => {
   const [numbersCalled, setNumbersCalled] = useState([]);
   const [currentNumber, setCurrentNumber] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [onlineCount, setOnlineCount] = useState("0")
   const [winner, setWinner] = useState([])
 
@@ -106,6 +107,10 @@ const Home = () => {
       setOnlineCount(count)
     });
 
+    socket.on("game-start", () => {
+      speak("Get ready, players! The game has officially begun. Best of luck!", "male", 1);
+    });
+
     // Listen for game state (past numbers, winners)
     socket.on("game-state", (game) => {
       setNumbersCalled(game.callNum || []);
@@ -126,13 +131,24 @@ const Home = () => {
       setCurrentNumber(number);
       setNumbersCalled((prev) => [...prev, number]);
       if (!isMuted) {
-        speakNumber(number, "male", 1)
+        speakNumber(number, "female", 1)
       }
     });
 
     //  listen for new winner
     socket.on("ticket-claimed", (data) => {
       setWinner((prev) => [...prev, ...data])
+      if (!isMuted) {
+        speak(`Congratulations! We have ${data.length} new ${data.length > 1 ? "claims" : "claim"} for`, "male", 1)
+        data.forEach(claim => {
+          speak(`${claim.prizeType},`, "male", 1)
+        });
+      }
+    });
+
+    // game over 
+    socket.on("game-over", () => {
+      speak("The game is over! Congratulations to all the winners. Thanks for playing Bingo Blast — until next time, keep the excitement alive!", "male", 1);
     });
 
     return () => {
@@ -141,17 +157,18 @@ const Home = () => {
       socket.off("new-number");
       socket.off("ticket-claimed");
     };
-  },[viewGameData]);
+  },[viewGameData, isMuted]);
 
 
   return (
     <>
       <button
         onClick={() => setIsMuted(prev => !prev)}
-        className="bg-gray-700 text-white px-4 py-2 rounded"
+        className="bg-gray-700 text-white px-3 py-2 rounded absolute top-4 left-4"
       >
-        {isMuted ? "Mute" : "Unmute"}
+        {!isMuted ? <i className="fa-solid fa-volume-high"></i> : <i className="fa-solid fa-volume-xmark"></i>}
       </button>
+
       {isAuthenticated && user.role == "admin" && <Link to={"/adminPanel"} className='bg-blue-500 absolute right-4 top-4 w-30 text-center text-black'>Admin Panel</Link>}
       {/* header */}
       <header className='py-25 px-3 max-sm:py-18'>
@@ -236,8 +253,8 @@ const Home = () => {
         </div>
       }
       <section id='ticketDisplay' ref={ticketDisplayRef} className='grid grid-cols-4 max-lg:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1 gap-2 w-[calc(100%-30px)] mb-10 m-auto'>
-        {ticketsDetails.length <= 0 ? Array(6).fill("").map((_,index) => (
-          <Ticket key={index} tno="Sample" data={[6, 0, 0, 33, 0, 0, 68, 71, 84, 0, 16, 0, 31, 46, 57, 0, 0, 83, 0, 0, 26, 0, 49, 52, 61, 0, 86]} called={numbersCalled}/>
+        {ticketsDetails.length <= 0 ? Array(1).fill("").map((_,index) => (
+          <Ticket key={index} tno="Sample Ticket" data={[6, 0, 0, 33, 0, 0, 68, 71, 84, 0, 16, 0, 31, 46, 57, 0, 0, 83, 0, 0, 26, 0, 49, 52, 61, 0, 86]} called={[]}/>
         ))
         :
           ticketsDetails.tickets.map((ticket, index) => (
@@ -254,18 +271,18 @@ const Home = () => {
           {winner.map((claim, index) => (
             <div key={index} className='w-[calc(100%-30px)] m-auto p-2 max-w-250 bg-slate-700 rounded-md'>
               {/* winner type */}
-              <div className='flex justify-between text-green-500 font-medium'>
+              <div className='flex justify-between text-green-500 font-medium mb-1'>
                 <h4>{claim.prizeType}-{claim.rank}</h4>
-                <h4 className='bg-slate-800 text-[0.8rem] px-2 py-1 w-22 text-center'>Last Call: {claim.lastCall}</h4>
+                <h4 className='bg-slate-800 text-[0.8rem] px-2 py-1 w-24 text-center'>Last Call: {claim.lastCall}</h4>
               </div>
               {/* winner details */}
               {claim.players.map((player, i) => (
                 <div key={i} className='flex items-center justify-between gap-2 text-[0.9rem]'>
                   <div>
                     <p className='font-medium'>{player.name}</p>
-                    <p className='text-[0.8rem]'>{player.playerID}</p>
+                    <p className='text-[0.8rem] text-white/60'>{player.playerID}</p>
                   </div>
-                  <p className='bg-slate-800 w-20 py-1 text-[0.8rem] text-center'>T.no: {player.ticket.tno}</p>
+                  <p className='bg-slate-800 w-24 py-1 text-[0.8rem] text-center'>T.no: {player.ticket.tno}</p>
                 </div>
               ))}
             </div>

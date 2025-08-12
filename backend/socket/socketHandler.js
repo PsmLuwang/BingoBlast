@@ -291,7 +291,7 @@ function startNumberCalling(io, gameID) {
     // send game over
     if (maxWinnerCount <= alreadyClaimed) {
       clearInterval(gameInterval);
-      io.emit("game-over", { message: "All numbers called!" });
+      io.emit("game-over", { message: "Game over!" });
       return;
     }
 
@@ -302,7 +302,7 @@ function startNumberCalling(io, gameID) {
         startNumberCalling(io, gameID)
       }, 4000);
     }
-  }, 3000);
+  }, 4000);
 }
 
 

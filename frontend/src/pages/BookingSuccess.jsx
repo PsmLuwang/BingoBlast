@@ -71,7 +71,7 @@ const BookingSuccess = () => {
         <h2 className="text-[1.2rem] font-semibold mb-2">Tickets:</h2>
         <div className="grid grid-cols-1 gap-4">
           {bookingData.tickets?.map((ticket, index) => (
-            <Ticket key={index} tno={ticket.tno} data={ticket.data} name={bookingData.buyer.name} />
+            <Ticket key={index} tno={ticket.tno} data={ticket.data} name={bookingData.buyer.name} called={[]}/>
           ))}
         </div>
       </div>

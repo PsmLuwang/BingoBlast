@@ -3,8 +3,11 @@ import { useAuthStore } from "../store/authStore.js"
 import { useGameDataStore } from "../store/gameDataStore.js"
 import GameUploadForm from "../components/GameUploadForm.jsx"
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import socket from "../socket";
 import LoadingAnimation from "../components/LoadingAnimation.jsx"
+
+import { PaymentRequestTemplate } from "../extraJS/whatsappAPI.js"
 
 
 const AdminPanel = () => {
@@ -255,12 +258,19 @@ const AdminPanel = () => {
                     <p className='text-[0.7rem]'>{formattedDateTime(player.createdAt).split(", ")[1]}</p>
                   </td>
                   <td className='py-2 pl-2 max-w-20'>
-                    <p>{player.buyer.phone}</p>
-                    <p className='text-[0.7rem]'>{player.buyer.email}</p>
+                    <Link className='bg-red-600'
+                      to={`https://wa.me/91${player.buyer.phone}?text=${encodeURIComponent(PaymentRequestTemplate(player))}`}
+                    >
+                    {/* <Link className='bg-red-600'
+                      to={`https://wa.me/91${player.buyer.phone}`}
+                    > */}
+                      <p>{player.buyer.phone}</p>
+                      <p className='text-[0.7rem]'>{player.buyer.email}</p>
+                    </Link>
                   </td>
                 </tr>
               ))}
-              
+
             </tbody>
           </table>
         </div>

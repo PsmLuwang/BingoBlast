@@ -323,6 +323,9 @@ function startNumberCalling(io, gameID) {
     // send game over
     if (maxWinnerCount <= alreadyClaimed) {
       clearInterval(gameInterval);
+      const game = await gameDataModel.findById(gameID);
+      game.gameStatus = "Game-Over";
+      await game.save();
       io.emit("game-over", { message: "Game over!" });
       return;
     }
@@ -334,7 +337,7 @@ function startNumberCalling(io, gameID) {
         startNumberCalling(io, gameID)
       }, 4000);
     }
-  }, 4000);
+  }, 1000);
 }
 
 
@@ -402,62 +405,3 @@ export default function socketHandler(io) {
     });
   });
 }
-
-
-// try {
-
-
-//       // check for new winner
-//       let pause = false;
-
-//       let winnerObjStructure = {
-//         rank: gameData.winners.houseFull.length + 1,
-//         player: []
-//       }
-//       for (const player of paidTickets) {
-//         for (const ticket of player.tickets) {
-//           const withoutZeroField = ticket.data.filter(num => num);
-
-//           const isHouseFull = withoutZeroField.every(element => calledNumbers.includes(element));
-//           if (
-//             isHouseFull 
-//             && gameData.maxWinner.houseFull > gameData.winners.houseFull.length
-//             && !gameData.winners.houseFull.some(win => win.player.some(p => p.ticket._id.equals(ticket._id)))
-//           ) {
-//             console.log("abc");
-            
-//             pause = true;
-//             gameData.winners.houseFull.push({
-//               rank: gameData.winners.houseFull.length + 1,
-//               player: [{
-//                 ticket: ticket,
-//                 playerID: player.playerID
-//               }]
-//             });
-
-//             await io.emit("ticket-claimed", { 
-//               message: "House Full!", 
-//               player, 
-//               ticket 
-//             });
-//           }
-//         }
-
-
-//       }
-
-//       // Save to DB
-//       await gameDataModel.findByIdAndUpdate(gameID, {
-//         $push: { callNum: nextNumber },
-//         // winners: gameData.winners
-//       });
-
-//       // Handle pause if needed
-//       if (pause) {
-//         clearInterval(gameInterval);
-//         setTimeout(() => startNumberCalling(io, gameID), 4000);
-//       }
-//     } catch (error) {
-//       console.error("Error in number calling:", error);
-//       clearInterval(gameInterval);
-//     }

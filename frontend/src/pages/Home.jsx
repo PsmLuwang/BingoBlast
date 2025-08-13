@@ -19,6 +19,7 @@ const Home = () => {
   const { viewGameData, gameData } = useGameDataStore();
   const { viewTickets, ticketsDetails, error } = useTicketStore();
   const [time, setTime] = useState("");
+  const [gameStatus, setGameStatus] = useState("");
   const [playerIDInput, setPlayerIDInput] = useState("");
   const ticketDisplayRef = useRef(null);
   const [viewTicketsLoading, setViewTicketsLoading] = useState(false)
@@ -56,6 +57,7 @@ const Home = () => {
 
         if (diff <= 0) {
           setTime("00:00:00");
+          setGameStatus("Game-Over")
           clearInterval(timerInterval);
           return;
         }
@@ -187,8 +189,9 @@ const Home = () => {
               Book now <i className="fa-solid fa-arrow-right text-[0.8rem]"></i>
             </Link>
           </div>
-          : 
-          <p className='flex justify-center items-baseline gap-2 m-auto my-3 font-bold text-red-500 text-[1.3rem]'>Game is Live!</p>
+          : gameStatus != "Game-Over" 
+          ? <p className='flex justify-center items-baseline gap-2 m-auto my-3 font-bold text-red-500 text-[1.3rem]'>Game is Live!</p>
+          : <p className='flex justify-center text-center items-baseline gap-2 m-auto my-3 font-bold text-red-500 text-[1.3rem]'>Game is Over! <br></br> Next game will upload soon.</p>
         }
       </header>
 
@@ -212,7 +215,7 @@ const Home = () => {
           </button>
         </div>
 
-        <Link className='bg-slate-700 h-12 w-12 rounded-full flex justify-center items-center aspect-square'>
+        <Link to={"https://chat.whatsapp.com/IudfeS7XAGPK7yGP10fre8?mode=ac_t"} target='blank' className='bg-slate-700 h-12 w-12 rounded-full flex justify-center items-center aspect-square'>
           <i className="fa-brands fa-whatsapp text-2xl text-green-600"></i>
         </Link>
       </section>

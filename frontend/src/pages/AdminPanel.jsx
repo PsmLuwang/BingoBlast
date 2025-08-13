@@ -5,6 +5,8 @@ import GameUploadForm from "../components/GameUploadForm.jsx"
 import { useState, useEffect } from 'react';
 import socket from "../socket";
 import LoadingAnimation from "../components/LoadingAnimation.jsx"
+
+
 const AdminPanel = () => {
 
   const { logout } = useAuthStore();

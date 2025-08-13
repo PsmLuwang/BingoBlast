@@ -57,7 +57,6 @@ const Home = () => {
 
         if (diff <= 0) {
           setTime("00:00:00");
-          setGameStatus("Game-Over")
           clearInterval(timerInterval);
           return;
         }
@@ -115,6 +114,9 @@ const Home = () => {
 
     // Listen for game state (past numbers, winners)
     socket.on("game-state", (game) => {
+      if (game.gameStatus == "Game-Over") {
+        setGameStatus("Game-Over")
+      }
       setNumbersCalled(game.callNum || []);
       setCurrentNumber(game.callNum[game.callNum.length - 1]);
       const flatArray = Object.values(game.winners).flat();
@@ -150,6 +152,7 @@ const Home = () => {
 
     // game over 
     socket.on("game-over", () => {
+      setGameStatus("Game-Over")
       speak("The game is over! Congratulations to all the winners. Thanks for playing Bingo Blast — until next time, keep the excitement alive!", "male", 1);
     });
 
@@ -249,8 +252,9 @@ const Home = () => {
             ? <p className='bg-green-500/15 text-green-600 py-1 px-2'>Running Tickets</p> 
             : <p className='bg-red-500/15 text-red-600 py-1 px-2'>Expired Tickets!</p>
           }
-          <div>{ticketsDetails.payment ? 
-            <p className='bg-green-500/15 text-green-600 py-1 px-2'>Paid</p> 
+          <div>
+            {ticketsDetails.payment ? 
+              <p className='bg-green-500/15 text-green-600 py-1 px-2'>Paid</p> 
               : <p className='bg-red-500/15 text-red-600 py-1 px-2'>Unpaid</p>
             }
           </div>

@@ -337,7 +337,7 @@ function startNumberCalling(io, gameID) {
         startNumberCalling(io, gameID)
       }, 4000);
     }
-  }, 1000);
+  }, 4500);
 }
 
 

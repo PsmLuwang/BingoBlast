@@ -323,9 +323,9 @@ function startNumberCalling(io, gameID) {
     // send game over
     if (maxWinnerCount <= alreadyClaimed) {
       clearInterval(gameInterval);
-      const game = await gameDataModel.findById(gameID);
-      game.gameStatus = "Game-Over";
-      await game.save();
+      await gameDataModel.findByIdAndUpdate(gameID, {
+        $set: { gameStatus: "Game-Over" }
+      });
       io.emit("game-over", { message: "Game over!" });
       return;
     }

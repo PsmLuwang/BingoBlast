@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import socket from "../socket";
 import LoadingAnimation from "../components/LoadingAnimation.jsx"
+import Nav from "../components/Nav.jsx"
 
 import { PaymentRequestTemplate } from "../extraJS/whatsappAPI.js"
 
@@ -109,6 +110,8 @@ const AdminPanel = () => {
   
   return (
     <section>
+      <Nav />
+
       <nav className='m-auto flex justify-center gap-2 my-5 mx-3 flex-wrap'>
         <button onClick={() => setUploadFormShow(true)} className='bg-blue-500 px-2 py-1 rounded-md text-[0.9rem]'>Upload Game</button>
         <button className='bg-blue-500 px-2 py-1 rounded-md text-[0.9rem]'>Game Modify</button>
@@ -261,9 +264,6 @@ const AdminPanel = () => {
                     <Link className='bg-red-600'
                       to={`https://wa.me/91${player.buyer.phone}?text=${encodeURIComponent(PaymentRequestTemplate(player))}`}
                     >
-                    {/* <Link className='bg-red-600'
-                      to={`https://wa.me/91${player.buyer.phone}`}
-                    > */}
                       <p>{player.buyer.phone}</p>
                       <p className='text-[0.7rem]'>{player.buyer.email}</p>
                     </Link>

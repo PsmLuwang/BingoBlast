@@ -8,13 +8,19 @@ const API_URL = import.meta.env.VITE_NODE_ENV == "development"
 
 axios.defaults.withCredentials = true;
 
-export const useGameDataStore = create((set) => ({
+export const useGameDataStore = create((set, get) => ({
+  isMuted: false,
 	gameData: null,
   players: [],
 	success: false,
 	error: null,
 	isLoading: false,
 	message: null,
+
+  muteToggle: () => {
+    const current = get().isMuted; // get current value
+    set({ isMuted: !current });    // update it
+  },
 
   uploadNewGame: async (data) => {
 		set({ isLoading: true, error: null, success: false });

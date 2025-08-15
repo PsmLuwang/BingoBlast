@@ -4,19 +4,20 @@ import socket from "../socket";
 
 // stores
 import { useTicketStore } from '../store/ticketStore.js'
-import { useAuthStore } from "../store/authStore";
+
 import { useGameDataStore } from "../store/gameDataStore.js"
 
 // components
 import Ticket from '../components/Ticket'
+import Nav from '../components/Nav'
 
 // helper
 import { speakNumber, speak, loadVoices } from "../extraJS/speech.js"
 loadVoices();
 
 const Home = () => {
-  const { isAuthenticated, user } = useAuthStore(); // check user ? admin / to show admin panel btn
-  const { viewGameData, gameData } = useGameDataStore();
+  
+  const { viewGameData, gameData, isMuted } = useGameDataStore();
   const { viewTickets, ticketsDetails, error } = useTicketStore();
   const [time, setTime] = useState("");
   const [gameStatus, setGameStatus] = useState("");
@@ -28,7 +29,6 @@ const Home = () => {
   const [numbersCalled, setNumbersCalled] = useState([]);
   const [currentNumber, setCurrentNumber] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [isMuted, setIsMuted] = useState(true);
   const [onlineCount, setOnlineCount] = useState("0")
   const [winner, setWinner] = useState([])
 
@@ -166,16 +166,13 @@ const Home = () => {
   },[viewGameData, isMuted]);
 
 
+
+
+
   return (
     <>
-      <button
-        onClick={() => setIsMuted(prev => !prev)}
-        className="bg-gray-700 text-white px-3 py-2 rounded absolute top-4 left-4"
-      >
-        {!isMuted ? <i className="fa-solid fa-volume-high"></i> : <i className="fa-solid fa-volume-xmark"></i>}
-      </button>
+      <Nav isMuted={isMuted} muteFunc={() => setIsMuted(prev => !prev)} />
 
-      {isAuthenticated && user.role == "admin" && <Link to={"/adminPanel"} className='bg-blue-500 absolute right-4 top-4 w-30 text-center text-black'>Admin Panel</Link>}
       {/* header */}
       <header className='py-25 px-3 max-sm:py-18'>
         <p className='bg-blue-500 w-34 text-center rounded-md text-[0.9rem] m-auto mb-2'>Online Players : {onlineCount}</p>
@@ -261,7 +258,7 @@ const Home = () => {
         </div>
       }
       <section id='ticketDisplay' ref={ticketDisplayRef} className='grid grid-cols-4 max-lg:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1 gap-2 w-[calc(100%-30px)] mb-10 m-auto'>
-        {ticketsDetails.length <= 0 ? Array(1).fill("").map((_,index) => (
+        {ticketsDetails.length <= 0 ? Array(4).fill("").map((_,index) => (
           <Ticket key={index} tno="Sample Ticket" data={[6, 0, 0, 33, 0, 0, 68, 71, 84, 0, 16, 0, 31, 46, 57, 0, 0, 83, 0, 0, 26, 0, 49, 52, 61, 0, 86]} called={[]}/>
         ))
         :

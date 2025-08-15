@@ -5,12 +5,13 @@ import { useAuthStore } from "./store/authStore";
 import Home from "./pages/Home";
 import Booking from "./pages/Booking";
 import BookingSuccess from "./pages/BookingSuccess";
-import GamePage from "./pages/GamePage";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import AllTicketsView from "./pages/AllTicketsView";
 
 import AdminPanel from "./pages/AdminPanel.jsx";
 import LoadingAnimation from "./components/LoadingAnimation.jsx";
+import Players from "./pages/Players.jsx";
 
 
 
@@ -52,7 +53,8 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/booking" element={<Booking />} />
       <Route path="/booking/status" element={<BookingSuccess />} />
-      <Route path="/GamePage" element={<GamePage />} />
+      <Route path="/view_all_tickets" element={<AllTicketsView />} />
+      <Route path="/view_all_players" element={<Players />} />
       
       <Route path="/register" 
         element={

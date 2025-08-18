@@ -21,13 +21,13 @@ const gameDataSchema = new mongoose.Schema(
     isBookingOpen : { type: Boolean, default: false },
     gameStatus : { type: String, enum: ["Preparation", "Ongoing", "Game-Over"], default: "Preparation" },
     maxWinner : {
-      quickFive: { type: Number },
-      firstLine: { type: Number },
-      secondLine: { type: Number },
-      thirdLine: { type: Number },
-      houseFull: { type: Number },
-      set: { type: Number },
-      halfSet: { type: Number }
+      quickFive: { type: Number, default: 0 },
+      firstLine: { type: Number, default: 0 },
+      secondLine: { type: Number, default: 0 },
+      thirdLine: { type: Number, default: 0 },
+      houseFull: { type: Number, default: 0 },
+      set: { type: Number, default: 0 },
+      halfSet: { type: Number, default: 0 }
     },
     winners : {
       quickFive: [

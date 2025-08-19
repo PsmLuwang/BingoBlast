@@ -38,7 +38,7 @@ const Players = () => {
     <>
       <Nav />
       <div className='mt-10'>
-        <h1 className='max-w-7xl m-auto'>Player details:</h1>
+        <h1 className='max-w-7xl m-auto w-[calc(100%-30px)]'>Player details:</h1>
         <div className='overflow-x-auto scrollbar-hide my-4 text-left'>
           <table className='max-w-7xl m-auto w-[calc(100%-30px)] border-spacing-2'>
             <thead className='bg-blue-400 text-slate-900 font-medium'>

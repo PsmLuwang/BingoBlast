@@ -401,7 +401,6 @@ export default function socketHandler(io) {
     socket.on("disconnect", () => {
       onlineCount--;
       io.emit("online-count", { count: onlineCount });
-      console.log("❌ User disconnected:", socket.id);
     });
   });
 }

@@ -13,6 +13,7 @@ import Nav from '../components/Nav'
 
 // helper
 import { speakNumber, speak, loadVoices } from "../extraJS/speech.js"
+import toast from 'react-hot-toast';
 loadVoices();
 
 const Home = () => {
@@ -148,12 +149,21 @@ const Home = () => {
           speak(`${claim.prizeType},`, "male", 1)
         });
       }
-    });
 
+      data.forEach(data => {
+        toast(`New claim for ${data.prizeType}!`, {
+          icon: ["🥳", "🤞", "✌️", "🎉", "🎊", "🏆", "👏"][Math.floor(Math.random()*7)],
+        });
+      })
+    });
+    
     // game over 
     socket.on("game-over", () => {
       setGameStatus("Game-Over")
       speak("The game is over! Congratulations to all the winners. Thanks for playing Bingo Blast — until next time, keep the excitement alive!", "male", 1);
+      toast("Game Over!", {
+        icon: "⚠️",
+      });
     });
 
     return () => {
@@ -171,7 +181,7 @@ const Home = () => {
 
   return (
     <>
-      <Nav isMuted={isMuted} muteFunc={() => setIsMuted(prev => !prev)} />
+      <Nav />
 
       {/* header */}
       <header className='py-25 px-3 max-sm:py-18'>

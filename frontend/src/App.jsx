@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useAuthStore } from "./store/authStore";
+import {Toaster} from "react-hot-toast"
 
 import Home from "./pages/Home";
 import Booking from "./pages/Booking";
@@ -49,36 +50,40 @@ function App() {
   if (isCheckingAuth) return (<LoadingAnimation />)
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/booking" element={<Booking />} />
-      <Route path="/booking/status" element={<BookingSuccess />} />
-      <Route path="/view_all_tickets" element={<AllTicketsView />} />
-      <Route path="/view_all_players" element={<Players />} />
+    <>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/booking" element={<Booking />} />
+        <Route path="/booking/status" element={<BookingSuccess />} />
+        <Route path="/view_all_tickets" element={<AllTicketsView />} />
+        <Route path="/view_all_players" element={<Players />} />
+        
+        <Route path="/register" 
+          element={
+            <Register />
+          } 
+        />
+
+        <Route path="/login" 
+          element={
+            <RedirectAuthenticatedUser>
+              <Login />
+            </RedirectAuthenticatedUser>
+          } 
+        />
       
-      <Route path="/register" 
-        element={
-          <Register />
-        } 
-      />
+        <Route path="/adminPanel" 
+          element={
+            <AdminProtectedRoute>
+              <AdminPanel />
+            </AdminProtectedRoute>
+          } 
+        />
 
-      <Route path="/login" 
-        element={
-          <RedirectAuthenticatedUser>
-            <Login />
-          </RedirectAuthenticatedUser>
-        } 
-      />
-     
-      <Route path="/adminPanel" 
-        element={
-          <AdminProtectedRoute>
-            <AdminPanel />
-          </AdminProtectedRoute>
-        } 
-      />
+      </Routes>
 
-    </Routes>
+      <Toaster />
+    </>
   )
 }
 

@@ -1,24 +1,15 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
+import { formattedDateTime } from "../extraJS/formattedDateTime.js"
 import { useGameDataStore } from "../store/gameDataStore.js"
 
 import Nav from '../components/Nav'
+import { useNavigate } from 'react-router-dom'
 
 const Players = () => {
-  const { viewGameData, gameData, players } = useGameDataStore();
-  const formattedDateTime = (date) => {
-    return new Date(date).toLocaleString("en-IN", {
-      timeZone: "Asia/Kolkata", 
-      day: "2-digit",
-      month: "short",  // use "long" for full month name
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true
-    })
-  }
+  const navigate = useNavigate();
+  const { viewGameData, players } = useGameDataStore();
   
-
   const [allPlayers, setAllPlayers] = useState([])
 
   useEffect(() => {
@@ -52,7 +43,7 @@ const Players = () => {
 
             <tbody>
               {allPlayers.map((player, index) => (
-                <tr key={index} className='text-[0.8rem] border-b border-slate-700'>
+                <tr onClick={() => navigate(`/booking/status?playerID=${player.playerID}`)} key={index} className='text-[0.8rem] border-b border-slate-700'>
                   <td className='py-2 pl-2'>
                     <p>{player.buyer.name}</p>
                     <p className='text-[0.7rem] text-left'>{player.playerID}</p>
@@ -62,13 +53,13 @@ const Players = () => {
                     {player.tickets.length}<span className='text-blue-500'>)</span>
                   </td>
                   <td className='py-2 pl-2'>
-                    <button disabled={true} className={`${player.payment ? "bg-green-500/15 text-green-600" : "bg-red-500/15 text-red-600"} p-2 w-14 text-center rounded-md`}>
+                    <div className={`${player.payment ? "bg-green-500/15 text-green-600" : "bg-red-500/15 text-red-600"} p-2 w-14 text-center rounded-md`}>
                       {player.payment ? "Paid" : "Unpaid"}
-                    </button>
+                    </div>
                   </td>
                   <td className='py-2 pl-2 max-w-30'>
-                    <p>{formattedDateTime(player.createdAt).split(", ")[0]}</p>
-                    <p className='text-[0.7rem] text-left'>{formattedDateTime(player.createdAt).split(", ")[1]}</p>
+                    <p>{formattedDateTime(player.createdAt).datePart}</p>
+                    <p className="text-[0.7rem] text-left">{formattedDateTime(player.createdAt).timePart}</p>
                   </td>
                 </tr>
               ))}

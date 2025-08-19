@@ -2,10 +2,10 @@ import React from 'react'
 import { useAuthStore } from "../store/authStore.js"
 import { useGameDataStore } from "../store/gameDataStore.js"
 import GameUploadForm from "../components/GameUploadForm.jsx"
+import { formattedDateTime } from "../extraJS/formattedDateTime.js"
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import socket from "../socket";
-import LoadingAnimation from "../components/LoadingAnimation.jsx"
 import Nav from "../components/Nav.jsx"
 
 import { PaymentRequestTemplate } from "../extraJS/whatsappAPI.js"
@@ -15,18 +15,6 @@ const AdminPanel = () => {
 
   const { logout } = useAuthStore();
   const { uploadNewGame, viewGameData, bookingToggle, paymentToggle, gameData, players, error, isLoading } = useGameDataStore();
-
-  const formattedDateTime = (date) => {
-    return new Date(date).toLocaleString("en-IN", {
-      timeZone: "Asia/Kolkata", 
-      day: "2-digit",
-      month: "short",  // use "long" for full month name
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true
-    })
-  }
 
   // get the updated game data when redirect to this page
   useEffect(() => {
@@ -150,7 +138,7 @@ const AdminPanel = () => {
           <h1><span className='font-medium text-blue-500'>Game ID: </span>{gameData._id}</h1>
           <h1>
             <span className='font-medium text-blue-500'>Start Time: </span>
-            {formattedDateTime(gameData.startAt)}
+            {`${formattedDateTime(gameData.createdAt).datePart} at ${formattedDateTime(gameData.createdAt).timePart}`}
           </h1>
           <h1><span className='font-medium text-blue-500'>Booking: </span>{gameData.isBookingOpen ? "Open" : "Closed"}</h1>
           
@@ -257,8 +245,8 @@ const AdminPanel = () => {
                     </button>
                   </td>
                   <td className='py-2 pl-2 max-w-30'>
-                    <p>{formattedDateTime(player.createdAt).split(", ")[0]}</p>
-                    <p className='text-[0.7rem]'>{formattedDateTime(player.createdAt).split(", ")[1]}</p>
+                    <p>{formattedDateTime(player.createdAt).datePart}</p>
+                    <p className="text-[0.7rem] text-left">{formattedDateTime(player.createdAt).timePart}</p>
                   </td>
                   <td className='py-2 pl-2 max-w-20'>
                     <Link className='bg-red-600'

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import Ticket from '../components/Ticket';
+import { formattedDateTime } from "../extraJS/formattedDateTime.js"
 
 const API_URL = import.meta.env.VITE_NODE_ENV == "development" 
 ? "http://localhost:5000" 
@@ -42,19 +43,6 @@ const BookingSuccess = () => {
     }
   }, [playerID]);
 
-
-  const formattedDateTime = (date) => {
-    return new Date(date).toLocaleString("en-IN", {
-      timeZone: "Asia/Kolkata", 
-      day: "2-digit",
-      month: "short",  // use "long" for full month name
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true
-    })
-  }
-
   if (loading) return <div className="text-center my-10">Loading booking details...</div>;
   if (error) return <div className="text-red-500 text-center my-10">{error}</div>;
 
@@ -64,7 +52,7 @@ const BookingSuccess = () => {
       <h1 className="text-2xl font-bold text-green-600 mb-4 mt-10 text-center">Booking Successful!</h1>
       <p><strong className='text-dark-text'>Game ID :</strong> {bookingData.gameID}</p>
       <p><strong className='text-dark-text'>Player ID :</strong> {bookingData.playerID}</p>
-      <p><strong className='text-dark-text'>Booking Time :</strong> {formattedDateTime(bookingData.createdAt)}</p>
+      <p><strong className='text-dark-text'>Booking Time :</strong> {`${formattedDateTime(bookingData.createdAt).datePart} at ${formattedDateTime(bookingData.createdAt).timePart}`}</p>
       <p><strong className='text-dark-text'>Payment :</strong> {bookingData.payment ? "Paid" : "Unpaid"}</p>
 
       <div className="mt-6">
